@@ -28,6 +28,20 @@ type SecurityPolicySetEvent struct {
 	// AllowUnauthenticatedDynamicClientRegistration additionally allows registration
 	// without an access token. It only has an effect if EnableDynamicClientRegistration.
 	AllowUnauthenticatedDynamicClientRegistration *bool `json:"allow_unauthenticated_dynamic_client_registration,omitempty"`
+
+	// EnableClientIDMetadataDocument resolves a client_id that is an absolute HTTPS URL as a
+	// Client ID Metadata Document instead of looking it up in the database.
+	//
+	// ixcans/zitadel-cimd fork: the JSON tag is intentionally NOT
+	// "enable_client_id_metadata_document". This event's payload is durable
+	// eventstore history, replayed forever. Our CIMD gate semantics (system+instance
+	// allowlist, denylist hardening) are fork-specific and not upstream's design; if
+	// this instance ever ran stock zitadel/zitadel and upstream later ships its own
+	// CIMD support under that exact field name but with different (e.g. allow-any-URL)
+	// semantics, a past "true" from us would be silently reinterpreted under upstream's
+	// looser rules. The fork-local tag makes that reinterpretation impossible: stock
+	// code has no field to bind it to, so it is ignored (fails closed), not re-widened.
+	EnableClientIDMetadataDocument *bool `json:"enable_client_id_metadata_document_ixcans_fork,omitempty"`
 }
 
 func NewSecurityPolicySetEvent(
@@ -83,6 +97,12 @@ func ChangeSecurityPolicyEnableDynamicClientRegistration(enabled bool) func(even
 func ChangeSecurityPolicyAllowUnauthenticatedDynamicClientRegistration(allow bool) func(event *SecurityPolicySetEvent) {
 	return func(e *SecurityPolicySetEvent) {
 		e.AllowUnauthenticatedDynamicClientRegistration = &allow
+	}
+}
+
+func ChangeSecurityPolicyEnableClientIDMetadataDocument(enabled bool) func(event *SecurityPolicySetEvent) {
+	return func(e *SecurityPolicySetEvent) {
+		e.EnableClientIDMetadataDocument = &enabled
 	}
 }
 
