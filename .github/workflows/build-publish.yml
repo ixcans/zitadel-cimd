@@ -75,10 +75,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Generates .pb.go stubs (buf generate), statik-embedded assets and the console bundle
+      # before `go mod tidy` runs, so tidy sees the full generated source tree. Porting the
+      # CIMD PR's commits onto v4.19.4 (a base with a different dependency graph than the PR's
+      # own v5/main) left go.mod slightly out of step with what the merged tree actually
+      # imports; `go mod tidy` is the correct fix (CI is exactly where this heavy/authoritative
+      # module resolution belongs - this step never runs on a contributor's own machine).
+      - name: Generate stubs and assets
+        run: pnpm nx run --nxBail @zitadel/api:generate
+
+      - name: Tidy Go modules
+        run: go mod tidy
+
       # Builds the API binary for linux/amd64 only (this fleet's one supported build target -
-      # no arm64/macOS/Windows). Depends on nx's own `generate` (buf generate against
-      # buf.build, protoc stub generation, statik asset embedding) and `build-console`
-      # (bundles the legacy console UI into the binary), same as upstream's pack-linux-amd64.
+      # no arm64/macOS/Windows). Reuses the generate output cached by the previous step, then
+      # compiles with build.version ldflag set to the fork-distinct version resolved above.
       - name: Build Linux amd64 API binary
         env:
           ZITADEL_VERSION: ${{ steps.version.outputs.version }}
