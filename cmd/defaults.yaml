@@ -1172,8 +1172,19 @@ HTTPClient:
     - "198.18.0.0/15"   # Benchmark/inter-network communication testing
     - "::/128"          # Unspecified IPv6 address
     - "::1/128"         # IPv6 loopback address
+    - "::ffff:0:0/96"   # IPv4-mapped IPv6 addresses (prevents IPv6-encapsulation bypass of the IPv4 ranges above)
     - "fc00::/7"        # Unique local addresses / IPv6 equivalent to private IPv4 subnets
     - "fe80::/10"       # Link-local addresses / IPv6 equivalent to cloud metadata subnets
+    # ixcans/zitadel-cimd fork: upstream's list above is pure literal CIDR matching on the
+    # resolved IP, with no NAT64 awareness. This matters here because our deployment cluster is
+    # IPv6-only with native NAT64/DNS64 egress for IPv4 destinations under the well-known prefix
+    # 64:ff9b::/96 (RFC 6052): any AAAA record (including one an attacker's own authoritative DNS
+    # returns directly, bypassing DNS64 synthesis entirely) that embeds a denied IPv4 address in
+    # that prefix - e.g. 64:ff9b::a9fe:a9fe for 169.254.169.254, or 64:ff9b::7f00:1 for 127.0.0.1 -
+    # is NOT contained in any of the four IPv6 entries above, so it would sail through this
+    # denylist's resolved-IP check undetected. Blocking the whole prefix here is the safe default:
+    # CIMD document URLs must be plain public HTTPS endpoints, never NAT64-synthesized addresses.
+    - "64:ff9b::/96"    # NAT64 well-known prefix (RFC 6052) - blocks embedded-IPv4 denylist bypass
 
 # The DefaultInstance section defines the default values for each new virtual instance that is created.
 # Check out https://zitadel.com/docs/concepts/structure/instance#multiple-virtual-instances for more information about virtual instances.

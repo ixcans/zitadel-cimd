@@ -1,0 +1,110 @@
+name: Build and publish
+
+# ixcans/zitadel-cimd fork: this replaces upstream's full CI suite (lint, unit/integration
+# tests, CodeQL, issue triage, semantic-release, homebrew/chart bump, npm packages). This
+# fork sends nothing upstream and carries no ongoing PR/issue process, so none of that applies.
+# The only job this repo needs is: compile the API binary and publish its container image.
+#
+# Runners are GitHub-hosted (ubuntu-latest) ONLY. Do not point this at any internal/ARC
+# runner fleet - this is a third-party-derived fork and must never touch internal infra.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag for the image (e.g. v4.19.4-cimd.2). Defaults to the fork's baseline version."
+        required: false
+        type: string
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+  # Fork-distinct build version - see cmd/build/info.go. Deliberately not a bare upstream
+  # version string, so `zitadel --version` / the Version field always identifies this as the
+  # ixcans CIMD fork, never confusable with a stock v4.19.4 build.
+  DEFAULT_VERSION: v4.19.4-cimd.1
+
+jobs:
+  build-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="${{ env.DEFAULT_VERSION }}"; fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Builds the API binary for linux/amd64 only (this fleet's one supported build target -
+      # no arm64/macOS/Windows). Depends on nx's own `generate` (buf generate against
+      # buf.build, protoc stub generation, statik asset embedding) and `build-console`
+      # (bundles the legacy console UI into the binary), same as upstream's pack-linux-amd64.
+      - name: Build Linux amd64 API binary
+        env:
+          ZITADEL_VERSION: ${{ steps.version.outputs.version }}
+        run: pnpm nx run --nxBail @zitadel/api:pack-linux-amd64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          target: final
+          platforms: linux/amd64
+          push: true
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
+            ${{ env.IMAGE }}:latest

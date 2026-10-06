@@ -243,3 +243,8 @@ HTTPClient:
     - "::ffff:0:0/96"   # IPv4-mapped IPv6 addresses (Prevents IPv6 encapsulation bypasses)
     - "fc00::/7"        # Unique local addresses / IPv6 equivalent to private IPv4 subnets
     - "fe80::/10"       # Link-local addresses / IPv6 equivalent to cloud metadata subnets
+    # ixcans/zitadel-cimd fork: our cluster is IPv6-only with native NAT64/DNS64 egress for IPv4
+    # destinations under the well-known prefix 64:ff9b::/96 (RFC 6052); see cmd/defaults.yaml for
+    # the full rationale (the same embedded-IPv4 denylist-bypass risk applies to this binary's own
+    # HTTPClient.DenyList).
+    - "64:ff9b::/96"    # NAT64 well-known prefix (RFC 6052) - blocks embedded-IPv4 denylist bypass
