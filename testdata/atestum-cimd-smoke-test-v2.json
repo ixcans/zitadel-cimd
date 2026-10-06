@@ -1,0 +1,8 @@
+{
+  "client_id": "https://raw.githubusercontent.com/ixcans/zitadel-cimd/main/testdata/atestum-cimd-smoke-test-v2.json",
+  "client_name": "Atestum CIMD Smoke Test v2",
+  "redirect_uris": ["https://raw.githubusercontent.com/ixcans/zitadel-cimd/main/testdata/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
