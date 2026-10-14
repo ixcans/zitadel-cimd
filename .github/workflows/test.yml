@@ -1,0 +1,92 @@
+name: Test
+
+# ixcans/zitadel-cimd fork: the gate for every change to the fork. It runs the codegen the image
+# build runs, then `go vet` and the module's unit tests. build-publish.yml calls this workflow
+# before it publishes, so a tag cannot publish a tree that fails here.
+#
+# Out of scope on purpose: the integration tests (`//go:build integration`, they need a running
+# instance with a database), the console and login bundles, and `-race` (upstream's own unit-test
+# target adds it; the fork's patches add no concurrency this gate would catch that review does not).
+#
+# Runners are GitHub-hosted (ubuntu-latest) ONLY, same rule as build-publish.yml.
+
+on:
+  push:
+    # Branches only: a tag push is build-publish.yml's trigger and calls this workflow itself.
+    branches:
+      - "**"
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The same generate target build-publish.yml runs: .pb.go stubs, asset routes and statik
+      # bundles, none of which are committed. The console bundle is not needed to compile or
+      # test the Go packages.
+      - name: Generate stubs and assets
+        run: pnpm nx run --nxBail @zitadel/api:generate
+
+      # build-publish.yml tidies go.mod before it compiles, so the tests run against the same
+      # module graph the image is built from. The diff is informational: when it is not empty,
+      # the committed go.mod/go.sum are behind that tidy and the diff is what to commit.
+      - name: Tidy Go modules
+        run: |
+          go mod tidy
+          git diff -- go.mod go.sum
+
+      # Every package, except two that carry findings from upstream v4.19.4 itself, in code the
+      # fork does not touch (unkeyed struct fields in internal/crypto/database's tests, a
+      # WriteByte signature and an unsafe.Pointer use in internal/v2/database). Excluding them by
+      # name keeps a patch in any other package vetted without a list to maintain.
+      - name: Vet
+        run: |
+          mapfile -t pkgs < <(go list ./... | grep -v -E '/internal/(crypto/database|v2/database)$')
+          go vet "${pkgs[@]}"
+
+      # The whole unit suite takes about three minutes; the timeout is a backstop that fails a
+      # hang loudly instead of holding the job for the full hour.
+      #
+      # Two upstream tests are skipped because they dial real third-party SMTP servers
+      # (mail.smtp2go.com:2525, example.com:2525) through net/smtp.Dial, which has no timeout:
+      # they pass or hang with the runner's network path (one run hung for the full 30 minutes in
+      # internal/command, another passed), and they test SMTP configuration, not the fork.
+      - name: Test
+        run: go test -timeout 15m -skip '^(TestCommandSide_TestSMTPConfig|TestCommandSide_TestSMTPConfigById)$' ./...

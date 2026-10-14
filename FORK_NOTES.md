@@ -43,18 +43,42 @@ New migration step `81` (free on this base) adds the CIMD security-policy column
 3. **Adjacent gap fixed for consistency**: `cmd/mirror/defaults.yaml` already blocked IPv4-mapped
    IPv6 (`::ffff:0:0/96`); `cmd/defaults.yaml` (the live server's own config) did not. Added it
    there too - this was an inconsistency between the two configs, not a deliberate choice.
-4. **Fork-distinct build version**: CI bakes `ZITADEL_VERSION=v4.19.4-cimd.1` (or a
-   `workflow_dispatch` override) into `cmd/build.version` via the same `-X` ldflag upstream's own
-   `pack-platform` nx target uses, so `zitadel --version` always identifies this exact fork/build,
-   never confusable with a stock v4.19.4 binary.
+4. **Fork-distinct build version**: CI bakes the git tag (`v4.19.4-cimd.1`, `v4.19.4-cimd.2`, ...)
+   into `cmd/build.version` via the same `-X` ldflag upstream's own `pack-platform` nx target
+   uses, so `zitadel --version` always identifies this exact fork/build, never confusable with a
+   stock v4.19.4 binary.
 
 ### CI
 
 Upstream's full workflow suite (lint, unit/integration tests, CodeQL, issue triage,
-semantic-release, Homebrew/chart-bump triggers, npm package publish) was removed. This repo's
-only workflow is `.github/workflows/build-publish.yml`: compile the API binary for `linux/amd64`
-and publish `ghcr.io/ixcans/zitadel-cimd`. Runs on GitHub-hosted `ubuntu-latest` only - never
-pointed at any internal/self-hosted runner fleet, since this is a third-party-derived fork.
+semantic-release, Homebrew/chart-bump triggers, npm package publish) was removed. This repo has
+two workflows, both on GitHub-hosted `ubuntu-latest` only - never pointed at any
+internal/self-hosted runner fleet, since this is a third-party-derived fork:
+
+- `.github/workflows/test.yml` runs on every push to a branch and every pull request: the same
+  codegen the image build runs, then `go vet` and the module's unit tests (`./...`, about five
+  minutes in all). `go vet` skips two packages whose findings are in upstream v4.19.4 itself and
+  outside the fork's patches: `internal/crypto/database` and `internal/v2/database`. The tests
+  skip `TestCommandSide_TestSMTPConfig` and `TestCommandSide_TestSMTPConfigById`, which dial real
+  third-party SMTP servers with no timeout and hung a run for 30 minutes. The integration tests
+  (`//go:build integration`) need a running instance and are not run, and neither is `-race`.
+- `.github/workflows/build-publish.yml` compiles the API binary for `linux/amd64` and publishes
+  `ghcr.io/ixcans/zitadel-cimd`. It needs `test.yml` to pass first.
+
+### Publishing rule
+
+Publishing is tag-driven; a push to `main` (or any branch) publishes nothing.
+
+- Tags are `v<upstream version>-cimd.<n>`, for example `v4.19.4-cimd.2`. The workflow takes the
+  image tag and the baked-in build version from the git tag, and also tags the image
+  `sha-<commit>`.
+- Tags are immutable. The workflow refuses to publish a version that already exists in the
+  registry, so a deployment pinned to a tag keeps running the image it was verified against.
+  To change what a deployment runs, cut the next `-cimd.<n>` tag and move the pin.
+- `latest` is not maintained. It still points at the last build made before publishing became
+  tag-driven (the same image as `v4.19.4-cimd.1`); do not deploy it.
+- `workflow_dispatch` re-runs the publish for an existing tag (`gh workflow run build-publish.yml
+  --ref <tag>`) and fails on a branch. There is no version input.
 
 ### Review status of the ported PR (as of 2026-10-06)
 

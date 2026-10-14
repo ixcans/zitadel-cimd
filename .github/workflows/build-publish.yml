@@ -3,31 +3,85 @@ name: Build and publish
 # ixcans/zitadel-cimd fork: this replaces upstream's full CI suite (lint, unit/integration
 # tests, CodeQL, issue triage, semantic-release, homebrew/chart bump, npm packages). This
 # fork sends nothing upstream and carries no ongoing PR/issue process, so none of that applies.
-# The only job this repo needs is: compile the API binary and publish its container image.
+# Its two jobs are: test the fork's patches (test.yml), and compile the API binary and publish
+# its container image.
+#
+# Publishing is tag-driven. A push to a branch publishes nothing. Tags are
+# v<upstream version>-cimd.<n> (for example v4.19.4-cimd.2), the image tag is the git tag, and a
+# tag is immutable: this workflow refuses to publish a version that already exists in the
+# registry, so a pinned tag can never be swapped for a different image. To change what a
+# deployment runs, cut the next -cimd.<n> tag. `latest` is not maintained (it still points at the
+# last build made before publishing became tag-driven).
 #
 # Runners are GitHub-hosted (ubuntu-latest) ONLY. Do not point this at any internal/ARC
 # runner fleet - this is a third-party-derived fork and must never touch internal infra.
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*-cimd.*"
+  # Re-run the publish for an existing tag (for example after a failed build). Run it against
+  # the tag: `gh workflow run build-publish.yml --ref v4.19.4-cimd.2`. There is no version
+  # input; the version is always the tag.
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version tag for the image (e.g. v4.19.4-cimd.2). Defaults to the fork's baseline version."
-        required: false
-        type: string
+
+permissions:
+  contents: read
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
-  # Fork-distinct build version - see cmd/build/info.go. Deliberately not a bare upstream
-  # version string, so `zitadel --version` / the Version field always identifies this as the
-  # ixcans CIMD fork, never confusable with a stock v4.19.4 build.
-  DEFAULT_VERSION: v4.19.4-cimd.1
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      # Fork-distinct build version - see cmd/build/info.go. Deliberately not a bare upstream
+      # version string, so `zitadel --version` / the Version field always identifies this as the
+      # ixcans CIMD fork, never confusable with a stock v4.19.4 build.
+      - name: Resolve version from the tag
+        id: version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" != "tag" ]; then
+            echo "::error::Publishing is tag-driven; run this workflow on a tag, not on the branch '$REF_NAME'."
+            exit 1
+          fi
+          if ! printf '%s' "$REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+-cimd\.[0-9]+$'; then
+            echo "::error::The tag '$REF_NAME' is not v<upstream version>-cimd.<n>."
+            exit 1
+          fi
+          echo "version=$REF_NAME" >> "$GITHUB_OUTPUT"
+
+      # Tags are immutable. The image is public, so this reads the registry anonymously.
+      - name: Refuse a version that is already published
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if out=$(docker buildx imagetools inspect "$IMAGE:$VERSION" 2>&1); then
+            echo "::error::$IMAGE:$VERSION is already published and tags are immutable; cut the next -cimd.<n> tag."
+            exit 1
+          fi
+          case "$out" in
+            *"not found"* | *MANIFEST_UNKNOWN* | *"manifest unknown"*) echo "$IMAGE:$VERSION is not published yet" ;;
+            *)
+              echo "::error::Could not tell whether $IMAGE:$VERSION is published: $out"
+              exit 1
+              ;;
+          esac
+
+  test:
+    needs: version
+    uses: ./.github/workflows/test.yml
+
   build-publish:
+    needs:
+      - version
+      - test
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -38,13 +92,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Resolve version
-        id: version
-        run: |
-          VERSION="${{ inputs.version }}"
-          if [ -z "$VERSION" ]; then VERSION="${{ env.DEFAULT_VERSION }}"; fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -92,7 +139,7 @@ jobs:
       # compiles with build.version ldflag set to the fork-distinct version resolved above.
       - name: Build Linux amd64 API binary
         env:
-          ZITADEL_VERSION: ${{ steps.version.outputs.version }}
+          ZITADEL_VERSION: ${{ needs.version.outputs.version }}
         run: pnpm nx run --nxBail @zitadel/api:pack-linux-amd64
 
       - name: Set up Docker Buildx
@@ -116,6 +163,5 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
           tags: |
-            ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.IMAGE }}:${{ needs.version.outputs.version }}
             ${{ env.IMAGE }}:sha-${{ github.sha }}
-            ${{ env.IMAGE }}:latest
