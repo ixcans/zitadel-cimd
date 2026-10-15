@@ -201,6 +201,7 @@ export const guidesSidebar: readonly SidebarItem[] = [
               "guides/integrate/service-accounts/private-key-jwt",
               "guides/integrate/service-accounts/client-credentials",
               "guides/integrate/service-accounts/personal-access-token",
+              "guides/integrate/service-accounts/federated-credentials",
             ],
           },
         ],

@@ -19,6 +19,7 @@ import "zitadel/user/v2/idp.proto";
 import "zitadel/user/v2/password.proto";
 import "zitadel/user/v2/user.proto";
 import "zitadel/user/v2/key.proto";
+import "zitadel/user/v2/federated_credential.proto";
 import "zitadel/user/v2/pat.proto";
 import "zitadel/user/v2/query.proto";
 import "zitadel/filter/v2/filter.proto";
@@ -1627,6 +1628,156 @@ service UserService {
         key: "400";
         value: {
           description: "invalid list query";
+        };
+      };
+    };
+  }
+
+  // Add a Federated Credential
+  //
+  // Let a machine user authenticate with a token that a foreign issuer signed, instead of with a key
+  // it holds: the credential names the issuer, where its keys come from, the allowed algorithms, the
+  // audience, the subject rule and further claim conditions, the maximum token age and the lifetime
+  // cap of the machine token issued in exchange. Only users of type machine can have federated
+  // credentials, and a user cannot add one to itself.
+  //
+  // Required permission:
+  //   - user.federated_credential.write
+  rpc AddFederatedCredential(AddFederatedCredentialRequest) returns (AddFederatedCredentialResponse) {
+    option (google.api.http) = {
+      post: "/v2/users/{user_id}/federated_credentials"
+      body: "*"
+    };
+
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "authenticated"
+      }
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      responses: {
+        key: "200"
+        value: {
+          description: "The federated credential was successfully created.";
+        }
+      };
+      responses: {
+        key: "404"
+        value: {
+          description: "The user ID does not exist.";
+          schema: {
+            json_schema: {
+              ref: "#/definitions/rpcStatus";
+            };
+          };
+        }
+      };
+    };
+  }
+
+  // Update a Federated Credential
+  //
+  // Change a federated credential of a machine user, including disabling and enabling it. Fields
+  // left out stay as they are; the changed credential is validated as a whole. A disabled
+  // credential is kept and accepts no token.
+  //
+  // Required permission:
+  //   - user.federated_credential.write
+  rpc UpdateFederatedCredential(UpdateFederatedCredentialRequest) returns (UpdateFederatedCredentialResponse) {
+    option (google.api.http) = {
+      patch: "/v2/users/{user_id}/federated_credentials/{credential_id}"
+      body: "*"
+    };
+
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "authenticated"
+      }
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      responses: {
+        key: "200"
+        value: {
+          description: "The federated credential was successfully updated.";
+        }
+      };
+      responses: {
+        key: "404"
+        value: {
+          description: "The user or the federated credential does not exist.";
+          schema: {
+            json_schema: {
+              ref: "#/definitions/rpcStatus";
+            };
+          };
+        }
+      };
+    };
+  }
+
+  // Remove a Federated Credential
+  //
+  // Delete a federated credential of a machine user.
+  //
+  // Required permission:
+  //   - user.federated_credential.delete
+  rpc RemoveFederatedCredential(RemoveFederatedCredentialRequest) returns (RemoveFederatedCredentialResponse) {
+    option (google.api.http) = {
+      delete: "/v2/users/{user_id}/federated_credentials/{credential_id}"
+    };
+
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "authenticated"
+      }
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      responses: {
+        key: "200"
+        value: {
+          description: "The federated credential was successfully removed.";
+        }
+      };
+      responses: {
+        key: "404"
+        value: {
+          description: "The user or the federated credential does not exist.";
+          schema: {
+            json_schema: {
+              ref: "#/definitions/rpcStatus";
+            };
+          };
+        }
+      };
+    };
+  }
+
+  // List Federated Credentials
+  //
+  // List the federated credentials of a machine user, disabled ones included.
+  //
+  // Required permission:
+  //   - user.federated_credential.read
+  rpc ListFederatedCredentials(ListFederatedCredentialsRequest) returns (ListFederatedCredentialsResponse) {
+    option (google.api.http) = {
+      post: "/v2/users/{user_id}/federated_credentials/search"
+      body: "*"
+    };
+
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "authenticated"
+      }
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      responses: {
+        key: "200";
+        value: {
+          description: "The federated credentials of the user.";
         };
       };
     };

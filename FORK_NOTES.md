@@ -115,6 +115,29 @@ fork-only allowed-audience column (item 5 below).
    compares only path and query, `Server.VerifyAuthRequest` first applies the strict rule
    (`verifyClientIDMetadataRedirectURI`) to clients whose ID is an https URL. Post-logout redirect URIs
    stay same-origin only.
+10. **Federated credentials of machine users: management** (fork-only;
+   `internal/domain/federated_credential.go`, `internal/command/user_machine_federated_credential*.go`).
+   A federated credential lets a machine user authenticate with a token a foreign issuer signed instead
+   of with a key it holds (the receiving half of workload identity federation). It holds the issuer
+   (exact, https only), the key source (the issuer's OpenID Provider metadata, which must be fetchable
+   by `publicfetch` (item 8), or a pinned JSON Web Key Set of public keys), the allowed algorithms
+   (ES256, RS256, EdDSA only), the exact audience, a subject rule on a named claim (an exact value, or an
+   RE2 pattern anchored at both ends that must begin with literal text, so no pattern can match every
+   subject), up to 20 claim equality conditions, the maximum token age (at most 24 hours) and the
+   lifetime cap of the issued machine token (at most 1 hour), and a disabled flag. Everything is
+   validated in the command layer. The user service v2 gains `AddFederatedCredential`,
+   `UpdateFederatedCredential` (partial; disabling and enabling are updates), `RemoveFederatedCredential`
+   and `ListFederatedCredentials` (`proto/zitadel/user/v2/federated_credential.proto`), under new
+   permissions `user.federated_credential.{read,write,delete}`, separate from `user.write` (which
+   manages the machine user's own keys) and granted by default to `IAM_OWNER` only, in both role
+   mapping blocks of `cmd/defaults.yaml`. A user cannot manage its own federated credentials (no
+   self-management, on read too), and a human user cannot hold one. Durable names follow item 1: the
+   events are on the user aggregate with fork-local types
+   (`user.machine.federated_credential_ixcans_fork.{added,changed,removed}`); a change event carries
+   only the fields that changed. The read model is the new projection
+   `projections.federated_credentials_ixcans_fork` (created by `zitadel setup`'s projection table step,
+   which runs again for every new build version; no numbered setup step), which `query.SearchFederatedCredentials` reads by user, ID, exact issuer and enabled
+   only. Nothing accepts a federated token yet: the token endpoint's exchange is a separate change.
 
 ### CI
 
