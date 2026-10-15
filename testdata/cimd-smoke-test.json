@@ -1,0 +1,8 @@
+{
+  "client_id": "https://raw.githubusercontent.com/ixcans/zitadel-cimd/main/testdata/cimd-smoke-test.json",
+  "client_name": "CIMD smoke test",
+  "redirect_uris": ["https://raw.githubusercontent.com/ixcans/zitadel-cimd/main/testdata/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
