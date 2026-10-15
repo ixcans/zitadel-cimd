@@ -166,6 +166,9 @@ func (s *Server) DeviceAuthorization(ctx context.Context, r *op.ClientRequest[oi
 	ctx, span := tracing.NewSpan(ctx)
 	defer func() { span.EndWithError(err) }()
 
+	if err = checkDeviceAuthorizationGrant(r.Client); err != nil {
+		return nil, err
+	}
 	return s.LegacyServer.DeviceAuthorization(ctx, r)
 }
 

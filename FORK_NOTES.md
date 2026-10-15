@@ -85,7 +85,12 @@ fork-only allowed-audience column (item 5 below).
    https URL, which no registered application can have). A document may declare only the
    `authorization_code` and `refresh_token` grants; one that lists implicit, device code or token
    exchange does not resolve (`invalid_client`). Registered and dynamically registered clients are
-   unchanged (DCR stays opaque).
+   unchanged (DCR stays opaque). The device flow is refused at both entry points: the token
+   endpoint's grant check refuses `device_code`, and `Server.DeviceAuthorization` now refuses to start
+   a device authorization for any client without the device code grant
+   (`checkDeviceAuthorizationGrant`). The oidc library's legacy handler made that check; its server
+   handler, which ZITADEL is served through, does not, so before this a client without the grant
+   could still get a user code issued (it could never redeem the device code).
 8. **Public-only document fetch** (fork-only; `internal/publicfetch`). The metadata document is no
    longer fetched through the shared HTTP client and its operator denylist, which Actions targets
    also use and which an operator may narrow so Actions can reach internal targets. `publicfetch.NewClient()`
