@@ -497,15 +497,16 @@ func TestCommands_RemoveMachineFederatedCredential(t *testing.T) {
 // The machine user's own keys are untouched by federated credentials: a key added before a
 // credential is still found by the key write model, and the credential events are invisible to it.
 func TestMachineFederatedCredential_keysUnchanged(t *testing.T) {
-	wm := NewMachineKeyWriteModel("user1", "key1", "org1")
-	wm.AppendEvents(
+	es := expectEventstore(expectFilter(
 		machineAddedForFederatedCredential(),
 		eventFromEventPusher(user.NewMachineKeyAddedEvent(context.Background(), federatedCredentialTestAggregate(),
 			"key1", domain.AuthNKeyTypeJSON, time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC), nil)),
 		federatedCredentialAdded("cred1", federatedCredentialTestConfig()),
 		eventFromEventPusher(user.NewMachineFederatedCredentialRemovedEvent(context.Background(), federatedCredentialTestAggregate(), "cred1")),
-	)
-	require.NoError(t, wm.Reduce())
+	))(t)
+	wm := NewMachineKeyWriteModel("user1", "key1", "org1")
+	require.NoError(t, es.FilterToQueryReducer(context.Background(), wm))
 	assert.True(t, wm.Exists())
+	assert.Equal(t, domain.AuthNKeyTypeJSON, wm.KeyType)
 	assert.NotContains(t, wm.Query().GetQueries()[0].GetEventTypes(), user.MachineFederatedCredentialAddedEventType)
 }
