@@ -63,6 +63,17 @@ fork-only allowed-audience column (item 5 below).
    `projections.security_policies3` (setup step `82`). Unlike the allowed URLs it takes no unique
    constraints: every reduction is idempotent, so a duplicate addition pushed concurrently leaves
    the project in the list once.
+6. **Scope policy for CIMD clients** (fork-only). When an authorization request is created for a
+   client resolved from a metadata document, `cimdScopeAndAudience`
+   (`internal/api/oidc/client_metadata_scopes.go`, a pure rule table called from the CIMD branch of
+   `createAuthRequestScopeAndAudience`) keeps `openid`, `profile`, `email` and the organization
+   routing scopes; keeps a project audience scope only for a project on the list of item 5, never
+   for the ZITADEL project (`zitadel` or the instance project ID), and fails the request with
+   `invalid_scope` for any other audience; keeps `offline_access` only with a granted audience; and
+   drops every other scope (roles, `projects:roles`, metadata, resource owner, IdP, org roles,
+   `phone`, `address`, custom). This also closes a role read through `/userinfo`, which asserts the
+   roles of every project an `...:aud` scope names whenever `projects:roles` is present. The
+   `resource` parameter stays ignored and dynamic client registration is unchanged.
 
 ### CI
 

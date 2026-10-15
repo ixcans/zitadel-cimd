@@ -183,6 +183,15 @@ host the client controls:
   short timeout and the response body is bounded.
 - **Caching.** A resolved document is cached per instance, honoring its `Cache-Control` and `Expires` headers up to a
   capped maximum. A `no-store` or `no-cache` response is never cached.
+- **Identity scopes by default.** A resolved client can be described by a document anyone publishes, so an authorization
+  request keeps only `openid`, `profile`, `email` and the organization scopes (`urn:zitadel:iam:org:id:{id}`,
+  `urn:zitadel:iam:org:domain:primary:{domain}`), which still restrict who may sign in. A project audience scope
+  (`urn:zitadel:iam:org:project:id:{projectId}:aud`) is kept only for a project in
+  [`allowedAudienceProjectIds`](#allow-projects-as-audiences); a request for the ZITADEL project (`zitadel` or the
+  instance's project ID) or for any other project fails with `invalid_scope`. `offline_access` is kept only together
+  with a granted audience. Role scopes, `urn:zitadel:iam:user:metadata`, `urn:zitadel:iam:user:resourceowner`,
+  identity provider and organization roles scopes, `phone` and `address` are dropped without an error, so neither the
+  tokens nor the userinfo endpoint carry project roles, metadata or address data of the user.
 
 Resolved clients have no project, no client secret and never run in dev mode, so no redirect URI wildcards are allowed.
 
@@ -193,6 +202,6 @@ Resolved clients have no project, no client secret and never run in dev mode, so
 - Resolved clients use the v2 login.
 - Resolved clients have no project, so they carry no project roles. The `resource` parameter
   ([RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)) is accepted and ignored, and the audience of an issued
-  token is derived from the requested scopes only.
+  token is derived from the requested audience scopes the instance allows.
 - A failed resolution is cached for a short window, so a client whose document was briefly unreachable stays
   unresolvable until that window passes.

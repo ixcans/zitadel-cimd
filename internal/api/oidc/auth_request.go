@@ -88,13 +88,16 @@ func (o *OPStorage) CreateAuthRequest(ctx context.Context, req *oidc.AuthRequest
 func (o *OPStorage) createAuthRequestScopeAndAudience(ctx context.Context, clientID string, reqScope []string) (scope, audience []string, orgID string, err error) {
 	if o.clientIDMetadataResolver.Handles(ctx, clientID) {
 		// Client ID Metadata Document clients have no project, so there are no project roles
-		// to assert and the audience is derived from the requested scopes only.
-		orgID, err = o.assertOrgScope(ctx, reqScope)
+		// to assert; their scope policy decides what they keep (client_metadata_scopes.go).
+		scope, audience, err = clientIDMetadataDocumentScopeAndAudience(ctx, reqScope)
 		if err != nil {
 			return nil, nil, "", err
 		}
-		audience = domain.AddAudScopeToAudience(ctx, nil, reqScope)
-		return reqScope, audience, orgID, nil
+		orgID, err = o.assertOrgScope(ctx, scope)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		return scope, audience, orgID, nil
 	}
 	project, err := o.query.ProjectByClientID(ctx, clientID)
 	if err != nil {
