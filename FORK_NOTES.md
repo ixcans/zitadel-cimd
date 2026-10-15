@@ -115,6 +115,20 @@ fork-only allowed-audience column (item 5 below).
    compares only path and query, `Server.VerifyAuthRequest` first applies the strict rule
    (`verifyClientIDMetadataRedirectURI`) to clients whose ID is an https URL. Post-logout redirect URIs
    stay same-origin only.
+10. **A metadata document client's sign-in completes** (fork-only; fixes the ported PR). When the login
+   UI linked the user's session to the authorization request (`CreateCallback`), the command layer ran
+   the project permission check, which looks the client up as a registered application by its client
+   ID. A client resolved from a metadata document has no application row, so every such sign-in failed
+   after the user had signed in and consented (`Errors.App.NotFound`). Such a client belongs to no
+   project, so there is no project check to make: `LinkSessionToAuthRequest` now skips the check for a
+   client ID that is a metadata document URL (`authRequestClientHasProject`,
+   `internal/command/auth_request_client_id_metadata.go`), which no registered or dynamically registered
+   application can have (their client IDs are generated). Every other client is checked as before.
+   Whether the client may start a request at all is still decided by the instance's allowed URLs when
+   the request is created, and again when the code is exchanged, since the token endpoint resolves the
+   client from its document. The rest of the path after the link (code, token exchange, refresh,
+   userinfo, revocation, end session) was traced for other lookups that need an application row and
+   has none that fails.
 
 ### CI
 

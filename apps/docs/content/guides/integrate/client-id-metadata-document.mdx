@@ -227,6 +227,10 @@ Resolved clients have no project, no client secret and never run in dev mode, so
 - Software statements (a signed JWT of the metadata) are not yet validated.
 - Free-form metadata such as `logo_uri`, `client_uri` or `contacts` is accepted but not persisted.
 - Resolved clients use the v2 login.
+- Resolved clients have no project, so the project settings that restrict sign-in to an application ("check for
+  project on authentication", "check authorization on authentication") do not apply to them, and neither do those of a
+  project they are allowed to request as an audience. Who may sign in is restricted by the organization scopes and the
+  login settings; a resource server that accepts such a token still decides what its subject may do.
 - Resolved clients have no project, so they carry no project roles. The `resource` parameter
   ([RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)) is accepted and ignored, and the audience of an issued
   token is derived from the requested audience scopes the instance allows.
