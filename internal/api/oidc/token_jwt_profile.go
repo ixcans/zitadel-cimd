@@ -22,6 +22,12 @@ func (s *Server) JWTProfile(ctx context.Context, r *op.Request[oidc.JWTProfileGr
 		err = oidcError(ctx, err)
 	}()
 
+	// An assertion a foreign issuer signed for a federated credential of a machine user takes its own
+	// path (token_jwt_profile_federated.go); every other assertion continues below, unchanged.
+	if handled, resp, err := s.federatedCredentialJWTProfile(ctx, r); handled {
+		return resp, err
+	}
+
 	user, err := s.verifyJWTProfile(ctx, r.Data)
 	if err != nil {
 		return nil, err

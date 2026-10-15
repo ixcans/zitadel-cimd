@@ -48,6 +48,7 @@ type Server struct {
 
 	registrationEndpoint     *op.Endpoint
 	clientIDMetadataResolver *clientIDMetadataResolver
+	federatedCredentials     *federatedCredentialExchanger
 }
 
 func endpoints(endpointConfig *EndpointConfig) op.Endpoints {

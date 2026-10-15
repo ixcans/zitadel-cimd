@@ -137,7 +137,7 @@ fork-only allowed-audience column (item 5 below).
    only the fields that changed. The read model is the new projection
    `projections.federated_credentials_ixcans_fork` (created by `zitadel setup`'s projection table step,
    which runs again for every new build version; no numbered setup step), which `query.SearchFederatedCredentials` reads by user, ID, exact issuer and enabled
-   only. Nothing accepts a federated token yet: the token endpoint's exchange is a separate change.
+   only. The token endpoint's exchange is item 13.
 11. **A metadata document client's sign-in completes** (fork-only; fixes the ported PR). When the login
    UI linked the user's session to the authorization request (`CreateCallback`), the command layer ran
    the project permission check, which looks the client up as a registered application by its client
@@ -161,6 +161,25 @@ fork-only allowed-audience column (item 5 below).
    auth request is created, and the code exchange refuses a code of such a client whose request
    carried no S256 challenge (`invalid_grant`), so no other path to the token endpoint can skip it.
    Registered and dynamically registered clients are unchanged.
+13. **Federated credentials of machine users: exchange** (fork-only;
+   `internal/api/oidc/federated_credential_*.go`, `internal/api/oidc/token_jwt_profile_federated.go`). The JWT-profile
+   grant (`urn:ietf:params:oauth:grant-type:jwt-bearer`) accepts, besides an assertion signed with a machine user's own
+   key, a token of a foreign issuer that one of item 10's credentials accepts. The hook is one `if` at the top of
+   `Server.JWTProfile`: an assertion whose `iss` is an https URL that at least one enabled credential names exactly
+   takes the new path, every other assertion the unchanged key path. Keys come from the issuer's metadata through
+   `publicfetch` (item 8), cached 15 minutes, fetched again for an unknown `kid` at most once a minute per issuer,
+   failing closed; or from the pinned keys. Checks: algorithm allow-list and key type, signature, `exp`/`nbf` (one
+   minute leeway), `iat` required and within the credential's maximum age, audience, subject rule and conditions; an
+   assertion two machine users' credentials accept is refused as ambiguous. Single use across replicas is an
+   eventstore unique constraint (type `user_federated_credential_assertion_ixcans_fork`, kept until the instance is
+   removed) on a key of `iss`+`jti`, or of the canonical signing input when there is no `jti`, carried by the new event
+   `user.machine.federated_credential_ixcans_fork.exchanged`, which is pushed in the same transaction as the OIDC
+   session (`command.WithFederatedCredentialExchange`), so a replayed token creates no session. The token is issued
+   like the key path's, capped with `command.WithMaxAccessTokenLifetime` (item 7) at the credential's lifetime, with no
+   refresh token, and the session's authentication method is the fork-local
+   `domain.UserAuthMethodTypeFederatedCredential` (value 1001, outside upstream's sequence), shown as `amr`
+   `federated_credential` in introspection and ID tokens. The read model is triggered before the credential lookup,
+   so a disable takes effect at once. The user's state is checked as for a key (`CreateOIDCSession`).
 
 ### CI
 

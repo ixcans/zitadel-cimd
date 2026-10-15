@@ -206,6 +206,9 @@ func NewServer(
 		httpClient:                 httpClient,
 		registrationEndpoint:       registrationEndpoint(config.CustomEndpoints),
 		clientIDMetadataResolver:   clientIDMetadataResolver,
+		// The keys of the issuers of federated credentials are fetched through the same public-only
+		// client as the metadata documents.
+		federatedCredentials: newFederatedCredentialExchanger(query.EnabledFederatedCredentialsByIssuer, newFederatedIssuerKeys(publicfetch.NewClient())),
 	}
 	metricTypes := []metrics.MetricType{metrics.MetricTypeRequestCount, metrics.MetricTypeStatusCode, metrics.MetricTypeTotalCount}
 

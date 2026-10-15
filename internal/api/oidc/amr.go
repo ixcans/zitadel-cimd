@@ -52,6 +52,8 @@ func AuthMethodTypesToAMR(methodTypes []domain.UserAuthMethodType) []string {
 		case domain.UserAuthMethodTypeIDP:
 			// no AMR value according to specification
 			factors++
+		case domain.UserAuthMethodTypeFederatedCredential:
+			amr = append(amr, FederatedCredential)
 		case domain.UserAuthMethodTypeUnspecified:
 			// ignore
 		}
