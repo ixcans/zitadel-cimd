@@ -87,6 +87,7 @@ var (
 	WebKeyProjection                    *handler.Handler
 	DebugEventsProjection               *handler.Handler
 	HostedLoginTranslationProjection    *handler.Handler
+	FederatedCredentialProjection       *handler.Handler
 
 	ProjectGrantFields      *handler.FieldHandler
 	OrgDomainVerifiedFields *handler.FieldHandler
@@ -189,6 +190,7 @@ func Create(ctx context.Context, sqlClient *database.DB, es handler.EventStore, 
 	WebKeyProjection = newWebKeyProjection(ctx, applyCustomConfig(projectionConfig, config.Customizations["web_keys"]))
 	DebugEventsProjection = newDebugEventsProjection(ctx, applyCustomConfig(projectionConfig, config.Customizations["debug_events"]))
 	HostedLoginTranslationProjection = newHostedLoginTranslationProjection(ctx, applyCustomConfig(projectionConfig, config.Customizations["hosted_login_translation"]))
+	FederatedCredentialProjection = newFederatedCredentialProjection(ctx, applyCustomConfig(projectionConfig, config.Customizations["federated_credentials"]))
 
 	ProjectGrantFields = newFillProjectGrantFields(applyCustomConfig(projectionConfig, config.Customizations[fieldsProjectGrant]))
 	OrgDomainVerifiedFields = newFillOrgDomainVerifiedFields(applyCustomConfig(projectionConfig, config.Customizations[fieldsOrgDomainVerified]))
@@ -378,5 +380,6 @@ func newProjectionsList() {
 		WebKeyProjection,
 		DebugEventsProjection,
 		HostedLoginTranslationProjection,
+		FederatedCredentialProjection,
 	}
 }
