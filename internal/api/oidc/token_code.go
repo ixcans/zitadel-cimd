@@ -130,6 +130,9 @@ func codeExchangeComplianceChecker(client *Client, req *oidc.AccessTokenRequest)
 		if authReq.ClientID != client.client.ClientID {
 			return oidc.ErrInvalidClient().WithDescription("client_id does not correspond to the client_id in the authorization request")
 		}
+		if err := checkClientIDMetadataDocumentCodePKCE(client.client.ClientID, CodeChallengeToOIDC(authReq.CodeChallenge)); err != nil {
+			return err
+		}
 		if authReq.CodeChallenge != nil || client.AuthMethod() == oidc.AuthMethodNone {
 			err := op.AuthorizeCodeChallenge(req.CodeVerifier, CodeChallengeToOIDC(authReq.CodeChallenge))
 			if err != nil {

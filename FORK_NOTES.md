@@ -129,6 +129,15 @@ fork-only allowed-audience column (item 5 below).
    client from its document. The rest of the path after the link (code, token exchange, refresh,
    userinfo, revocation, end session) was traced for other lookups that need an application row and
    has none that fails.
+12. **PKCE with S256 is required of metadata document clients** (fork-only;
+   `internal/api/oidc/client_metadata_pkce.go`). The protocol layer checks a code verifier only when
+   the authorization request carried a challenge, so a public client resolved from a document could
+   complete a sign-in without PKCE, although the guide said it must use it. `Server.Authorize` now
+   answers such a client's request without a `code_challenge`, or with the `plain` method (also the
+   method when none is named), with `invalid_request` at the already validated redirect URI, before an
+   auth request is created, and the code exchange refuses a code of such a client whose request
+   carried no S256 challenge (`invalid_grant`), so no other path to the token endpoint can skip it.
+   Registered and dynamically registered clients are unchanged.
 
 ### CI
 

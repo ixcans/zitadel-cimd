@@ -157,7 +157,7 @@ Serve a JSON document at the URL you want to use as the `client_id`. It uses the
 
 A client then starts an [authorization code flow](/guides/integrate/login/oidc/login-users) with the document URL as its
 `client_id`, for example `https://client.example.com/oauth/metadata`. Because the resolved client is public, it must use
-[PKCE](https://datatracker.ietf.org/doc/html/rfc7636).
+[PKCE](https://datatracker.ietf.org/doc/html/rfc7636) with the `S256` method (see [PKCE required](#security-model)).
 
 ## Security model
 
@@ -209,6 +209,11 @@ host the client controls:
   with a granted audience. Role scopes, `urn:zitadel:iam:user:metadata`, `urn:zitadel:iam:user:resourceowner`,
   identity provider and organization roles scopes, `phone` and `address` are dropped without an error, so neither the
   tokens nor the userinfo endpoint carry project roles, metadata or address data of the user.
+- **PKCE required.** The authorization code is the only credential a public client presents at the token endpoint, so
+  an authorization request of a resolved client must carry a `code_challenge` with `code_challenge_method=S256`
+  ([RFC 9700, section 2.1.1](https://datatracker.ietf.org/doc/html/rfc9700#section-2.1.1)). A request without one, or
+  with the `plain` method, is answered at the redirect URI with `invalid_request`, and the token endpoint refuses to
+  exchange a code of such a client whose request carried no `S256` challenge (`invalid_grant`).
 - **Code and refresh grants only.** `grant_types` may list only `authorization_code` and `refresh_token` (the default
   is `authorization_code`), and `response_types` therefore only `code`. A document that lists `implicit`, the device
   code grant or token exchange is rejected with `invalid_client`, so no other grant can be used with a self-declared
