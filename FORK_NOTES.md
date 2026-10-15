@@ -17,7 +17,8 @@ relational-storage rewrite, which v4.19.4 does not have and does not need for CI
 cleanly or with small conflict resolution (`go.mod`'s unrelated dependency drift from v5's full
 tree reverted to this fork's existing versions; the real `zitadel/oidc` v3.47.5→v3.48.0 bump kept).
 
-New migration step `81` (free on this base) adds the CIMD security-policy columns.
+New migration step `81` (free on this base) adds the CIMD security-policy columns; step `82` adds the
+fork-only allowed-audience column (item 5 below).
 
 ### Fork-specific hardening beyond the ported PR
 
@@ -47,6 +48,21 @@ New migration step `81` (free on this base) adds the CIMD security-policy column
    into `cmd/build.version` via the same `-X` ldflag upstream's own `pack-platform` nx target
    uses, so `zitadel --version` always identifies this exact fork/build, never confusable with a
    stock v4.19.4 binary.
+5. **Allowed audiences of CIMD clients** (fork-only, not in the ported PR). The instance security
+   settings carry a fourth CIMD field, `allowed_audience_project_ids` on
+   `ClientIDMetadataDocumentSettings`: the projects a client resolved from a metadata document may
+   request as an audience (`urn:zitadel:iam:org:project:id:{id}:aud`). It is replace-all through
+   `SetSecuritySettings`, read through `GetSecuritySettings`, and changed one entry at a time through
+   `AddClientIDMetadataDocumentAllowedAudience` / `RemoveClientIDMetadataDocumentAllowedAudience`,
+   all under `iam.policy.write` (read: `iam.policy.read`), like the allowed-URL list. The ZITADEL
+   project (`zitadel` or the instance's project ID) is refused. Durable names follow item 1: the
+   set-event JSON tag is `client_id_metadata_document_allowed_audiences_ixcans_fork`, and the single
+   add/remove events are fork-local types
+   (`instance.policy.security.client_id_metadata_document.allowed_audience_ixcans_fork.{added,removed}`).
+   The read model is the column `client_id_metadata_document_allowed_audiences` of
+   `projections.security_policies3` (setup step `82`). Unlike the allowed URLs it takes no unique
+   constraints: every reduction is idempotent, so a duplicate addition pushed concurrently leaves
+   the project in the list once.
 
 ### CI
 

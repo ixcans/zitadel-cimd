@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "İstemci kimliği meta veri belgesi URL'si geçersiz"
         AlreadyExists: "İstemci kimliği meta veri belgesi URL'sine zaten izin verilmiş"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "İstemci kimliği meta veri belgesi hedef kitlesinin proje kimliği geçersiz"
+        Reserved: "ZITADEL projesi, istemci kimliği meta veri belgesi istemcilerinin hedef kitlesi olamaz"
+        AlreadyExists: "Proje, istemci kimliği meta veri belgesi istemcilerinin izin verilen hedef kitlesi olarak zaten ekli"
   Policy:
     AlreadyExists: "Politika zaten mevcut"
     Label:

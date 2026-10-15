@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "Die URL des Client-ID-Metadatendokuments ist ungültig"
         AlreadyExists: "Die URL des Client-ID-Metadatendokuments ist bereits erlaubt"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "Die Projekt-ID einer Zielgruppe für Client-ID-Metadatendokumente ist ungültig"
+        Reserved: "Das ZITADEL-Projekt kann keine Zielgruppe von Clients mit Client-ID-Metadatendokument sein"
+        AlreadyExists: "Das Projekt ist bereits als Zielgruppe von Clients mit Client-ID-Metadatendokument erlaubt"
   Policy:
     AlreadyExists: "Policy existiert bereits"
     Label:

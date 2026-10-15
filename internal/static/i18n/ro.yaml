@@ -611,6 +611,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "URL-ul documentului de metadate al ID-ului clientului este invalid"
         AlreadyExists: "URL-ul documentului de metadate al ID-ului clientului este deja permis"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "ID-ul proiectului unei audiențe a documentului de metadate al ID-ului clientului este invalid"
+        Reserved: "Proiectul ZITADEL nu poate fi o audiență a clienților cu document de metadate al ID-ului clientului"
+        AlreadyExists: "Proiectul este deja o audiență permisă a clienților cu document de metadate al ID-ului clientului"
   IDP:
     InvalidSearchQuery: "Interogare de căutare invalidă"
     ClientIDMissing: "ClientID lipsă"

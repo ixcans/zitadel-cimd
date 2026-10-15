@@ -422,6 +422,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "クライアントIDメタデータドキュメントのURLが無効です"
         AlreadyExists: "クライアントIDメタデータドキュメントのURLはすでに許可されています"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "クライアントIDメタデータドキュメントのオーディエンスのプロジェクトIDが無効です"
+        Reserved: "ZITADELプロジェクトはクライアントIDメタデータドキュメントのクライアントのオーディエンスにできません"
+        AlreadyExists: "このプロジェクトはクライアントIDメタデータドキュメントのクライアントのオーディエンスとしてすでに許可されています"
   Policy:
     AlreadyExists: "ポリシーはすでに存在します"
     Label:

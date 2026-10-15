@@ -420,6 +420,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "Az ügyfélazonosító metaadat-dokumentumának URL-je érvénytelen"
         AlreadyExists: "Az ügyfélazonosító metaadat-dokumentumának URL-je már engedélyezett"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "Az ügyfélazonosító metaadat-dokumentum célközönségének projektazonosítója érvénytelen"
+        Reserved: "A ZITADEL projekt nem lehet ügyfélazonosító metaadat-dokumentummal rendelkező ügyfelek célközönsége"
+        AlreadyExists: "A projekt már engedélyezett célközönsége az ügyfélazonosító metaadat-dokumentummal rendelkező ügyfeleknek"
   Policy:
     AlreadyExists: "Policy már létezik"
     Label:

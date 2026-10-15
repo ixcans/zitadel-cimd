@@ -27,6 +27,9 @@ type SecurityPolicy struct {
 	// ClientIDMetadataDocumentAllowAnyURL lets the instance resolve every client_id URL the system
 	// allows, regardless of ClientIDMetadataDocumentAllowedURLs.
 	ClientIDMetadataDocumentAllowAnyURL bool
+	// ClientIDMetadataDocumentAllowedAudiences are the IDs of the projects that clients resolved
+	// from a Client ID Metadata Document may request as an audience.
+	ClientIDMetadataDocumentAllowedAudiences []string
 }
 
 func (c *Commands) SetSecurityPolicy(ctx context.Context, policy *SecurityPolicy) (*domain.ObjectDetails, error) {
@@ -68,6 +71,9 @@ func (c *Commands) prepareSetSecurityPolicy(a *instance.Aggregate, policy *Secur
 			}
 		}
 		return func(ctx context.Context, filter preparation.FilterToQueryReducer) ([]eventstore.Command, error) {
+			if err := validateClientIDMetadataDocumentAllowedAudiences(ctx, policy.ClientIDMetadataDocumentAllowedAudiences); err != nil {
+				return nil, err
+			}
 			writeModel, err := c.getSecurityPolicyWriteModel(ctx, filter)
 			if err != nil {
 				return nil, err

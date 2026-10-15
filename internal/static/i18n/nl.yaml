@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "De URL van het client-ID-metadatadocument is ongeldig"
         AlreadyExists: "De URL van het client-ID-metadatadocument is al toegestaan"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "De project-ID van een doelgroep voor client-ID-metadatadocumenten is ongeldig"
+        Reserved: "Het ZITADEL-project kan geen doelgroep zijn van clients met een client-ID-metadatadocument"
+        AlreadyExists: "Het project is al een toegestane doelgroep van clients met een client-ID-metadatadocument"
   Policy:
     AlreadyExists: "Beleid bestaat al"
     Label:

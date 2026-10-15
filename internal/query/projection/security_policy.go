@@ -26,6 +26,8 @@ const (
 	SecurityPolicyColumnEnableClientIDMetadataDocument      = "enable_client_id_metadata_document"
 	SecurityPolicyColumnClientIDMetadataDocumentAllowedURLs = "client_id_metadata_document_allowed_urls"
 	SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL = "client_id_metadata_document_allow_any_url"
+
+	SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences = "client_id_metadata_document_allowed_audiences"
 )
 
 type securityPolicyProjection struct{}
@@ -53,6 +55,7 @@ func (*securityPolicyProjection) Init() *old_handler.Check {
 			handler.NewColumn(SecurityPolicyColumnEnableClientIDMetadataDocument, handler.ColumnTypeBool, handler.Default(false)),
 			handler.NewColumn(SecurityPolicyColumnClientIDMetadataDocumentAllowedURLs, handler.ColumnTypeTextArray, handler.Nullable()),
 			handler.NewColumn(SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL, handler.ColumnTypeBool, handler.Default(false)),
+			handler.NewColumn(SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences, handler.ColumnTypeTextArray, handler.Nullable()),
 		},
 			handler.NewPrimaryKey(SecurityPolicyColumnInstanceID),
 		),
@@ -75,6 +78,14 @@ func (p *securityPolicyProjection) Reducers() []handler.AggregateReducer {
 				{
 					Event:  instance.SecurityPolicyClientIDMetadataDocumentAllowedURLRemovedEventType,
 					Reduce: p.reduceClientIDMetadataDocumentAllowedURLRemoved,
+				},
+				{
+					Event:  instance.SecurityPolicyClientIDMetadataDocumentAllowedAudienceAddedEventType,
+					Reduce: p.reduceClientIDMetadataDocumentAllowedAudienceAdded,
+				},
+				{
+					Event:  instance.SecurityPolicyClientIDMetadataDocumentAllowedAudienceRemovedEventType,
+					Reduce: p.reduceClientIDMetadataDocumentAllowedAudienceRemoved,
 				},
 				{
 					Event:  instance.InstanceRemovedEventType,
@@ -121,6 +132,9 @@ func (p *securityPolicyProjection) reduceSecurityPolicySet(event eventstore.Even
 	}
 	if e.ClientIDMetadataDocumentAllowAnyURL != nil {
 		changes = append(changes, handler.NewCol(SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL, e.ClientIDMetadataDocumentAllowAnyURL))
+	}
+	if e.ClientIDMetadataDocumentAllowedAudiences != nil {
+		changes = append(changes, handler.NewCol(SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences, e.ClientIDMetadataDocumentAllowedAudiences))
 	}
 	return handler.NewUpsertStatement(
 		e,

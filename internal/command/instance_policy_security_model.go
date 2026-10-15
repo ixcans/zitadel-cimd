@@ -53,7 +53,11 @@ func (wm *InstanceSecurityPolicyWriteModel) Reduce() error {
 			if e.ClientIDMetadataDocumentAllowAnyURL != nil {
 				wm.ClientIDMetadataDocumentAllowAnyURL = *e.ClientIDMetadataDocumentAllowAnyURL
 			}
+			if e.ClientIDMetadataDocumentAllowedAudiences != nil {
+				wm.ClientIDMetadataDocumentAllowedAudiences = *e.ClientIDMetadataDocumentAllowedAudiences
+			}
 		}
+		wm.reduceClientIDMetadataDocumentAllowedAudience(event)
 		if e, ok := event.(*instance.SecurityPolicyClientIDMetadataDocumentAllowedURLAddedEvent); ok {
 			if !slices.Contains(wm.ClientIDMetadataDocumentAllowedURLs, e.URL) {
 				wm.ClientIDMetadataDocumentAllowedURLs = append(wm.ClientIDMetadataDocumentAllowedURLs, e.URL)
@@ -78,6 +82,8 @@ func (wm *InstanceSecurityPolicyWriteModel) Query() *eventstore.SearchQueryBuild
 			instance.SecurityPolicySetEventType,
 			instance.SecurityPolicyClientIDMetadataDocumentAllowedURLAddedEventType,
 			instance.SecurityPolicyClientIDMetadataDocumentAllowedURLRemovedEventType,
+			instance.SecurityPolicyClientIDMetadataDocumentAllowedAudienceAddedEventType,
+			instance.SecurityPolicyClientIDMetadataDocumentAllowedAudienceRemovedEventType,
 		).
 		Builder()
 }
@@ -115,6 +121,9 @@ func (wm *InstanceSecurityPolicyWriteModel) NewSetEvent(
 	}
 	if wm.ClientIDMetadataDocumentAllowAnyURL != policy.ClientIDMetadataDocumentAllowAnyURL {
 		changes = append(changes, instance.ChangeSecurityPolicyClientIDMetadataDocumentAllowAnyURL(policy.ClientIDMetadataDocumentAllowAnyURL))
+	}
+	if !slices.Equal(wm.ClientIDMetadataDocumentAllowedAudiences, policy.ClientIDMetadataDocumentAllowedAudiences) {
+		changes = append(changes, instance.ChangeSecurityPolicyClientIDMetadataDocumentAllowedAudiences(policy.ClientIDMetadataDocumentAllowedAudiences))
 	}
 	changeEvent, err := instance.NewSecurityPolicySetEvent(ctx, aggregate, changes)
 	if err != nil {

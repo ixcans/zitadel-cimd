@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "L'URL du document de métadonnées de l'ID client n'est pas valide"
         AlreadyExists: "L'URL du document de métadonnées de l'ID client est déjà autorisée"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "L'ID de projet d'une audience de document de métadonnées de l'ID client n'est pas valide"
+        Reserved: "Le projet ZITADEL ne peut pas être une audience des clients à document de métadonnées de l'ID client"
+        AlreadyExists: "Le projet est déjà une audience autorisée des clients à document de métadonnées de l'ID client"
   Policy:
     AlreadyExists: "La politique existe déjà"
     Label:

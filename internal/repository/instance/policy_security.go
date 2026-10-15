@@ -90,6 +90,9 @@ type SecurityPolicySetEvent struct {
 	// ClientIDMetadataDocumentAllowAnyURL lets the instance resolve every client_id URL the
 	// system allows, regardless of ClientIDMetadataDocumentAllowedURLs.
 	ClientIDMetadataDocumentAllowAnyURL *bool `json:"client_id_metadata_document_allow_any_url_ixcans_fork,omitempty"`
+	// ClientIDMetadataDocumentAllowedAudiences replaces the IDs of the projects that clients
+	// resolved from a Client ID Metadata Document may request as an audience.
+	ClientIDMetadataDocumentAllowedAudiences *[]string `json:"client_id_metadata_document_allowed_audiences_ixcans_fork,omitempty"`
 
 	// uniqueConstraints keeps the allowed URL constraints in step when the list is replaced.
 	uniqueConstraints []*eventstore.UniqueConstraint

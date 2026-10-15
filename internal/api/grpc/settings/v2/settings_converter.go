@@ -254,6 +254,8 @@ func securityPolicyToSettingsPb(policy *query.SecurityPolicy) *settings.Security
 			Enabled:     policy.EnableClientIDMetadataDocument,
 			AllowedUrls: policy.ClientIDMetadataDocumentAllowedURLs,
 			AllowAnyUrl: policy.ClientIDMetadataDocumentAllowAnyURL,
+
+			AllowedAudienceProjectIds: policy.ClientIDMetadataDocumentAllowedAudiences,
 		},
 	}
 }
@@ -270,5 +272,7 @@ func securitySettingsToCommand(req *settings.SetSecuritySettingsRequest) *comman
 		EnableClientIDMetadataDocument:      req.GetClientIdMetadataDocument().GetEnabled(),
 		ClientIDMetadataDocumentAllowedURLs: req.GetClientIdMetadataDocument().GetAllowedUrls(),
 		ClientIDMetadataDocumentAllowAnyURL: req.GetClientIdMetadataDocument().GetAllowAnyUrl(),
+
+		ClientIDMetadataDocumentAllowedAudiences: req.GetClientIdMetadataDocument().GetAllowedAudienceProjectIds(),
 	}
 }

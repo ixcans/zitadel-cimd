@@ -116,6 +116,28 @@ curl --request POST \
 Adding a URL that is already allowed is answered with `ALREADY_EXISTS`. Removing a URL that is not allowed is not an
 error.
 
+### Allow projects as audiences
+
+`allowedAudienceProjectIds` lists the projects that a resolved client may request as an audience with the scope
+`urn:zitadel:iam:org:project:id:{projectId}:aud`. The list is empty by default. The ZITADEL project can never be an
+audience of a resolved client: neither `zitadel` nor the instance's own project ID is accepted.
+
+Like `allowedUrls`, the list is replaced by `SetSecuritySettings` (a request without it clears it), and
+`AddClientIDMetadataDocumentAllowedAudience` and `RemoveClientIDMetadataDocumentAllowedAudience` change one entry. Both
+require `iam.policy.write`, and every change is recorded in the instance's event history.
+
+```bash
+curl --request POST \
+  --url ${CUSTOM_DOMAIN}/zitadel.settings.v2.SettingsService/AddClientIDMetadataDocumentAllowedAudience \
+  --header 'Authorization: Bearer <token of an IAM_OWNER>' \
+  --header 'Content-Type: application/json' \
+  --header 'Connect-Protocol-Version: 1' \
+  --data '{ "projectId": "69629023906488334" }'
+```
+
+Adding a project that is already allowed is answered with `ALREADY_EXISTS`. Removing a project that is not allowed is
+not an error.
+
 ## Document format
 
 Serve a JSON document at the URL you want to use as the `client_id`. It uses the same members as a

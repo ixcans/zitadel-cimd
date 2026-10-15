@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "URL dokumentu metadat ID klienta je neplatná"
         AlreadyExists: "URL dokumentu metadat ID klienta je již povolena"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "ID projektu cílové skupiny dokumentu metadat ID klienta je neplatné"
+        Reserved: "Projekt ZITADEL nemůže být cílovou skupinou klientů s dokumentem metadat ID klienta"
+        AlreadyExists: "Projekt je již povolenou cílovou skupinou klientů s dokumentem metadat ID klienta"
   Policy:
     AlreadyExists: "Zásada již existuje"
     Label:

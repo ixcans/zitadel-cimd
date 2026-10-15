@@ -422,6 +422,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "客户端 ID 元数据文档 URL 无效"
         AlreadyExists: "客户端 ID 元数据文档 URL 已被允许"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "客户端 ID 元数据文档受众的项目 ID 无效"
+        Reserved: "ZITADEL 项目不能作为客户端 ID 元数据文档客户端的受众"
+        AlreadyExists: "该项目已被允许作为客户端 ID 元数据文档客户端的受众"
   Policy:
     AlreadyExists: "策略已存在"
     Label:

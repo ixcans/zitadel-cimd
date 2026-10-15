@@ -458,6 +458,38 @@ service SettingsService {
     };
   }
 
+  // Add Client ID Metadata Document Allowed Audience
+  //
+  // Adds a project that a client resolved from a Client ID Metadata Document may request as an
+  // audience, without replacing the other security settings. The ZITADEL project cannot be
+  // added. Adding a project that is already allowed returns an error.
+  //
+  // Required permissions:
+  //   - `iam.policy.write`
+  rpc AddClientIDMetadataDocumentAllowedAudience(AddClientIDMetadataDocumentAllowedAudienceRequest) returns (AddClientIDMetadataDocumentAllowedAudienceResponse) {
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "iam.policy.write"
+      }
+    };
+  }
+
+  // Remove Client ID Metadata Document Allowed Audience
+  //
+  // Removes a project that a client resolved from a Client ID Metadata Document may request as
+  // an audience, without replacing the other security settings. Removing a project that is not
+  // allowed is not an error.
+  //
+  // Required permissions:
+  //   - `iam.policy.write`
+  rpc RemoveClientIDMetadataDocumentAllowedAudience(RemoveClientIDMetadataDocumentAllowedAudienceRequest) returns (RemoveClientIDMetadataDocumentAllowedAudienceResponse) {
+    option (zitadel.protoc_gen_zitadel.v2.options) = {
+      auth_option: {
+        permission: "iam.policy.write"
+      }
+    };
+  }
+
   // Get Hosted Login Translation
   //
   // Returns the translations in the requested locale for the hosted login.
@@ -737,6 +769,48 @@ message RemoveClientIDMetadataDocumentAllowedURLRequest {
 
 message RemoveClientIDMetadataDocumentAllowedURLResponse {
   // DeletionDate is the timestamp when the URL was no longer allowed.
+  google.protobuf.Timestamp deletion_date = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "\"2025-01-23T10:34:18.051Z\"";
+    }
+  ];
+}
+
+message AddClientIDMetadataDocumentAllowedAudienceRequest {
+  // The ID of the project to allow as an audience.
+  string project_id = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 200},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      min_length: 1;
+      max_length: 200;
+      example: "\"69629023906488334\"";
+    }
+  ];
+}
+
+message AddClientIDMetadataDocumentAllowedAudienceResponse {
+  // CreationDate is the timestamp when the project was allowed.
+  google.protobuf.Timestamp creation_date = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "\"2025-01-23T10:34:18.051Z\"";
+    }
+  ];
+}
+
+message RemoveClientIDMetadataDocumentAllowedAudienceRequest {
+  // The ID of the project to no longer allow as an audience.
+  string project_id = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 200},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      min_length: 1;
+      max_length: 200;
+      example: "\"69629023906488334\"";
+    }
+  ];
+}
+
+message RemoveClientIDMetadataDocumentAllowedAudienceResponse {
+  // DeletionDate is the timestamp when the project was no longer allowed.
   google.protobuf.Timestamp deletion_date = 1 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       example: "\"2025-01-23T10:34:18.051Z\"";

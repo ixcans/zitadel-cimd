@@ -420,6 +420,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "URL:en för klient-ID-metadatadokumentet är ogiltig"
         AlreadyExists: "URL:en för klient-ID-metadatadokumentet är redan tillåten"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "Projekt-ID:t för en målgrupp för klient-ID-metadatadokument är ogiltigt"
+        Reserved: "ZITADEL-projektet kan inte vara en målgrupp för klienter med klient-ID-metadatadokument"
+        AlreadyExists: "Projektet är redan en tillåten målgrupp för klienter med klient-ID-metadatadokument"
   Policy:
     AlreadyExists: "Policyn finns redan"
     Label:

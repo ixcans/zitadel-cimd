@@ -420,6 +420,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "URL-адресата на документот со метаподатоци за ID на клиентот е невалидна"
         AlreadyExists: "URL-адресата на документот со метаподатоци за ID на клиентот е веќе дозволена"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "ID-то на проектот на публиката на документот со метаподатоци за ID на клиентот е невалидно"
+        Reserved: "Проектот ZITADEL не може да биде публика на клиенти со документ со метаподатоци за ID на клиентот"
+        AlreadyExists: "Проектот е веќе дозволена публика на клиенти со документ со метаподатоци за ID на клиентот"
   Policy:
     AlreadyExists: "Политиката веќе постои"
     Label:

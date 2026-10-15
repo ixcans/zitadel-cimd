@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "Adres URL dokumentu metadanych identyfikatora klienta jest nieprawidłowy"
         AlreadyExists: "Adres URL dokumentu metadanych identyfikatora klienta jest już dozwolony"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "Identyfikator projektu odbiorcy dokumentu metadanych identyfikatora klienta jest nieprawidłowy"
+        Reserved: "Projekt ZITADEL nie może być odbiorcą klientów z dokumentem metadanych identyfikatora klienta"
+        AlreadyExists: "Projekt jest już dozwolonym odbiorcą klientów z dokumentem metadanych identyfikatora klienta"
   Policy:
     AlreadyExists: "Polityka już istnieje"
     Label:

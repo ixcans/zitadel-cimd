@@ -67,6 +67,10 @@ var (
 		name:  projection.SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL,
 		table: securityPolicyTable,
 	}
+	SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences = Column{
+		name:  projection.SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences,
+		table: securityPolicyTable,
+	}
 )
 
 type SecurityPolicy struct {
@@ -86,6 +90,9 @@ type SecurityPolicy struct {
 	EnableClientIDMetadataDocument      bool
 	ClientIDMetadataDocumentAllowedURLs database.TextArray[string]
 	ClientIDMetadataDocumentAllowAnyURL bool
+	// ClientIDMetadataDocumentAllowedAudiences are the IDs of the projects that clients resolved
+	// from a Client ID Metadata Document may request as an audience.
+	ClientIDMetadataDocumentAllowedAudiences database.TextArray[string]
 }
 
 func (q *Queries) SecurityPolicy(ctx context.Context) (policy *SecurityPolicy, err error) {
@@ -118,7 +125,8 @@ func prepareSecurityPolicyQuery() (sq.SelectBuilder, func(*sql.Row) (*SecurityPo
 			SecurityPolicyColumnAllowUnauthenticatedDynamicClientRegistration.identifier(),
 			SecurityPolicyColumnEnableClientIDMetadataDocument.identifier(),
 			SecurityPolicyColumnClientIDMetadataDocumentAllowedURLs.identifier(),
-			SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL.identifier()).
+			SecurityPolicyColumnClientIDMetadataDocumentAllowAnyURL.identifier(),
+			SecurityPolicyColumnClientIDMetadataDocumentAllowedAudiences.identifier()).
 			From(securityPolicyTable.identifier()).
 			PlaceholderFormat(sq.Dollar),
 		func(row *sql.Row) (*SecurityPolicy, error) {
@@ -137,6 +145,7 @@ func prepareSecurityPolicyQuery() (sq.SelectBuilder, func(*sql.Row) (*SecurityPo
 				&securityPolicy.EnableClientIDMetadataDocument,
 				&securityPolicy.ClientIDMetadataDocumentAllowedURLs,
 				&securityPolicy.ClientIDMetadataDocumentAllowAnyURL,
+				&securityPolicy.ClientIDMetadataDocumentAllowedAudiences,
 			)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) { // ignore not found errors
 				return nil, zerrors.ThrowInternal(err, "QUERY-Dfrt2", "Errors.Internal")

@@ -73,6 +73,22 @@ message ClientIDMetadataDocumentSettings {
   // AllowAnyURL lets the instance resolve every client_id URL the system allows, regardless of
   // allowed_urls.
   bool allow_any_url = 3;
+
+  // AllowedAudienceProjectIDs are the IDs of the projects that a client resolved from a Client
+  // ID Metadata Document may request as an audience, with the scope
+  // `urn:zitadel:iam:org:project:id:{projectId}:aud`. A request for the audience of any other
+  // project fails. The ZITADEL project can never be an audience of such a client, so neither
+  // `zitadel` nor the instance's own project ID is accepted.
+  //
+  // Setting the security settings replaces the list, and a request without the list clears it.
+  // Use AddClientIDMetadataDocumentAllowedAudience and RemoveClientIDMetadataDocumentAllowedAudience
+  // to change single entries.
+  repeated string allowed_audience_project_ids = 4 [
+    (validate.rules).repeated = {unique: true, items: {string: {min_len: 1, max_len: 200}}},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "[\"69629023906488334\"]";
+    }
+  ];
 }
 
 message EmbeddedIframeSettings{

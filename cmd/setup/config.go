@@ -200,6 +200,7 @@ type Steps struct {
 	s78UniqueConstraintOwners               *UniqueConstraintOwners
 	s80Users14InstanceResourceOwnerIndex    *Users14InstanceResourceOwnerIndex
 	s81SecurityPolicies3AddCIMD             *SecurityPolicies3AddClientIDMetadataDocument
+	s82SecurityPolicies3AddCIMDAudiences    *SecurityPolicies3AddClientIDMetadataDocumentAllowedAudiences
 	BackfillUniqueConstraintOwners          *BackfillUniqueConstraintOwners
 }
 

@@ -41,6 +41,9 @@ type Instance interface {
 	// ClientIDMetadataDocumentAllowAnyURL states if the instance resolves every client_id URL the
 	// system allows, regardless of ClientIDMetadataDocumentAllowedURLs.
 	ClientIDMetadataDocumentAllowAnyURL() bool
+	// ClientIDMetadataDocumentAllowedAudiences are the IDs of the projects that clients resolved
+	// from a Client ID Metadata Document may request as an audience.
+	ClientIDMetadataDocumentAllowedAudiences() []string
 	Block() *bool
 	AuditLogRetention() *time.Duration
 	Features() feature.Features
@@ -70,6 +73,7 @@ type instance struct {
 	enableCIMD              bool
 	cimdAllowedURLs         []string
 	cimdAllowAnyURL         bool
+	cimdAllowedAudiences    []string
 }
 
 func (i *instance) Block() *bool {
@@ -134,6 +138,10 @@ func (i *instance) ClientIDMetadataDocumentAllowedURLs() []string {
 
 func (i *instance) ClientIDMetadataDocumentAllowAnyURL() bool {
 	return i.cimdAllowAnyURL
+}
+
+func (i *instance) ClientIDMetadataDocumentAllowedAudiences() []string {
+	return i.cimdAllowedAudiences
 }
 
 func (i *instance) Features() feature.Features {

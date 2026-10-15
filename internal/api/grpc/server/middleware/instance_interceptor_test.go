@@ -329,6 +329,10 @@ func (m *mockInstance) ClientIDMetadataDocumentAllowAnyURL() bool {
 	return false
 }
 
+func (m *mockInstance) ClientIDMetadataDocumentAllowedAudiences() []string {
+	return nil
+}
+
 func (m *mockInstance) Features() feature.Features {
 	return feature.Features{}
 }

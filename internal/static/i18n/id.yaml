@@ -420,6 +420,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "URL dokumen metadata ID klien tidak valid"
         AlreadyExists: "URL dokumen metadata ID klien sudah diizinkan"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "ID proyek audiens dokumen metadata ID klien tidak valid"
+        Reserved: "Proyek ZITADEL tidak dapat menjadi audiens klien dokumen metadata ID klien"
+        AlreadyExists: "Proyek sudah menjadi audiens yang diizinkan untuk klien dokumen metadata ID klien"
   Policy:
     AlreadyExists: "Kebijakan sudah ada"
     Label:

@@ -421,6 +421,10 @@ Errors:
       ClientIDMetadataDocumentAllowedURL:
         Invalid: "클라이언트 ID 메타데이터 문서 URL이 유효하지 않습니다"
         AlreadyExists: "클라이언트 ID 메타데이터 문서 URL이 이미 허용되어 있습니다"
+      ClientIDMetadataDocumentAllowedAudience:
+        Invalid: "클라이언트 ID 메타데이터 문서 대상의 프로젝트 ID가 유효하지 않습니다"
+        Reserved: "ZITADEL 프로젝트는 클라이언트 ID 메타데이터 문서 클라이언트의 대상이 될 수 없습니다"
+        AlreadyExists: "이 프로젝트는 이미 클라이언트 ID 메타데이터 문서 클라이언트의 대상으로 허용되어 있습니다"
   Policy:
     AlreadyExists: "정책이 이미 존재합니다"
     Label:

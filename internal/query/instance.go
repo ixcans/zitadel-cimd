@@ -471,6 +471,7 @@ type authzInstance struct {
 	CIMD                   bool                       `json:"cimd,omitempty"`
 	CIMDAllowedURLs        database.TextArray[string] `json:"cimd_allowed_urls,omitempty"`
 	CIMDAllowAnyURL        bool                       `json:"cimd_allow_any_url,omitempty"`
+	CIMDAllowedAudiences   database.TextArray[string] `json:"cimd_allowed_audiences,omitempty"`
 	IsBlocked              *bool                      `json:"is_blocked,omitempty"`
 	LogRetention           *time.Duration             `json:"log_retention,omitempty"`
 	Feature                feature.Features           `json:"feature,omitempty"`
@@ -550,6 +551,10 @@ func (i *authzInstance) ClientIDMetadataDocumentAllowAnyURL() bool {
 	return i.CIMDAllowAnyURL
 }
 
+func (i *authzInstance) ClientIDMetadataDocumentAllowedAudiences() []string {
+	return i.CIMDAllowedAudiences
+}
+
 func (i *authzInstance) Block() *bool {
 	return i.IsBlocked
 }
@@ -623,6 +628,7 @@ func scanAuthzInstance() (*authzInstance, func(row *sql.Row) error) {
 			&enableCIMD,
 			&instance.CIMDAllowedURLs,
 			&cimdAllowAnyURL,
+			&instance.CIMDAllowedAudiences,
 			&auditLogRetention,
 			&block,
 			&features,
