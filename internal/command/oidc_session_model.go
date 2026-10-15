@@ -171,6 +171,9 @@ func (wm *OIDCSessionWriteModel) CheckAccessToken(accessTokenID string) error {
 }
 
 func (wm *OIDCSessionWriteModel) CheckClient(clientID string) error {
+	if sessionOwnedByMetadataDocumentClient(wm.ClientID, clientID) {
+		return nil
+	}
 	for _, aud := range wm.Audience {
 		if aud == clientID {
 			return nil

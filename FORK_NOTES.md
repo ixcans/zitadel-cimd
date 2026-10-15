@@ -150,8 +150,15 @@ fork-only allowed-audience column (item 5 below).
    Whether the client may start a request at all is still decided by the instance's allowed URLs when
    the request is created, and again when the code is exchanged, since the token endpoint resolves the
    client from its document. The rest of the path after the link (code, token exchange, refresh,
-   userinfo, revocation, end session) was traced for other lookups that need an application row and
-   has none that fails.
+   userinfo, end session) has no other lookup that needs an application row. Revocation (RFC 7009) did
+   not work for such a client: the session check behind it (`OIDCSessionWriteModel.CheckClient`) accepts
+   only a client in the session's audience, which for a registered application lists the client IDs of
+   its project but for a metadata document client holds only the projects it was granted, never the
+   client. Revoking its own token was answered with `invalid_client` and the token stayed valid.
+   `CheckClient` now also accepts a metadata document client that is the session's own client
+   (`sessionOwnedByMetadataDocumentClient`, `internal/command/oidc_session_client_id_metadata.go`), the
+   same way the code exchange and the refresh grant identify the client. Every other client is still
+   judged by the audience alone, and another client cannot revoke such a client's tokens.
 12. **PKCE with S256 is required of metadata document clients** (fork-only;
    `internal/api/oidc/client_metadata_pkce.go`). The protocol layer checks a code verifier only when
    the authorization request carried a challenge, so a public client resolved from a document could

@@ -224,6 +224,10 @@ host the client controls:
   `client_id`, and no role claims. A JWT cannot be revoked before it expires, so its lifetime is capped at one hour,
   however long the instance's access token lifetime is; a shorter instance lifetime still applies, also to tokens
   issued by a refresh. ID tokens are capped at five minutes. Refresh tokens keep the instance's lifetimes.
+- **Revocation.** A resolved client can revoke its own access and refresh tokens at the revocation endpoint
+  ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)) with its `client_id`; no other client can. A revoked
+  token is refused at once by the userinfo and introspection endpoints, and a revoked refresh token cannot be used
+  again. A resource server that verifies an access token by its signature alone still accepts it until it expires.
 
 Resolved clients have no project, no client secret and never run in dev mode, so no redirect URI wildcards are allowed.
 
