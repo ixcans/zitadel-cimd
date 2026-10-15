@@ -113,7 +113,7 @@ func (c *Commands) LinkSessionToAuthRequest(ctx context.Context, id, sessionID, 
 		return nil, nil, err
 	}
 
-	if projectPermissionCheck != nil {
+	if projectPermissionCheck != nil && authRequestClientHasProject(writeModel.ClientID) {
 		if err := projectPermissionCheck(ctx, writeModel.ClientID, sessionWriteModel.UserID); err != nil {
 			return nil, nil, err
 		}
