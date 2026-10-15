@@ -92,7 +92,7 @@ func (c *Commands) CreateOIDCSessionFromAuthRequest(
 	if err != nil {
 		return nil, "", err
 	}
-	cmd.applyOptions(opts)
+	cmd.applyOptions(ctx, opts)
 	if authReqModel.ResponseType == domain.OIDCResponseTypeCode {
 		if err = cmd.SetAuthRequestCodeExchanged(ctx, authReqModel); err != nil {
 			return nil, "", err
@@ -165,7 +165,7 @@ func (c *Commands) CreateOIDCSession(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	cmd.applyOptions(opts)
+	cmd.applyOptions(ctx, opts)
 	if err = cmd.checkPermission(ctx, userID, resourceOwner, clientID, reason, actor); err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *Commands) ExchangeOIDCSessionRefreshAndAccessToken(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	cmd.applyOptions(opts)
+	cmd.applyOptions(ctx, opts)
 	scope, err = complianceCheck(ctx, cmd.oidcSessionWriteModel, scope, reqClientID)
 	if err != nil {
 		return nil, err

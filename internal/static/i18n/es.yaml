@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Una condición de claim no es válida: cada una necesita un claim y un valor, como máximo una vez por claim y 20 en total"
         MaxTokenAgeInvalid: "La antigüedad máxima del token debe ser mayor que 0 y de 24 horas como máximo"
         MaxTokenLifetimeInvalid: "La duración máxima del token debe ser mayor que 0 y de 1 hora como máximo"
+        AssertionAlreadyUsed: "Este token ya se utilizó; cada token se acepta una sola vez"
     PAT:
       NotFound: "Token de acceso personal no encontrado"
     Metadata:

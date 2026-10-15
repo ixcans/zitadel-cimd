@@ -148,6 +148,7 @@ Errors:
         ConditionInvalid: "声明条件无效：每个条件都需要一个声明和一个值，每个声明最多一次，且最多 20 个"
         MaxTokenAgeInvalid: "令牌自签发起的最长时间必须大于 0 且不超过 24 小时"
         MaxTokenLifetimeInvalid: "令牌的最长有效期必须大于 0 且不超过 1 小时"
+        AssertionAlreadyUsed: "此令牌已被使用；每个令牌只接受一次"
     PAT:
       NotFound: "未找到个人访问令牌"
     Metadata:

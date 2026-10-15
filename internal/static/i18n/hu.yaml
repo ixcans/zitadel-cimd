@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Egy claim-feltétel érvénytelen: mindegyikhez claim és érték szükséges, claimenként legfeljebb egyszer és legfeljebb 20"
         MaxTokenAgeInvalid: "A token maximális korának 0-nál nagyobbnak és legfeljebb 24 órának kell lennie"
         MaxTokenLifetimeInvalid: "A token maximális élettartamának 0-nál nagyobbnak és legfeljebb 1 órának kell lennie"
+        AssertionAlreadyUsed: "Ezt a tokent már felhasználták; minden token csak egyszer fogadható el"
     PAT:
       NotFound: "A személyes hozzáférési token nem található"
     Metadata:

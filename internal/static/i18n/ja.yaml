@@ -148,6 +148,7 @@ Errors:
         ConditionInvalid: "クレーム条件が無効です。各条件にはクレームと値が必要で、クレームごとに最大 1 回、全体で最大 20 件までです"
         MaxTokenAgeInvalid: "トークンの最大経過時間は 0 より大きく 24 時間以内である必要があります"
         MaxTokenLifetimeInvalid: "トークンの最大有効期間は 0 より大きく 1 時間以内である必要があります"
+        AssertionAlreadyUsed: "このトークンはすでに使用されています。各トークンは一度だけ受け付けられます"
     PAT:
       NotFound: "パーソナルアクセストークンが見つかりません"
     Metadata:

@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Een claimvoorwaarde is ongeldig: elke voorwaarde heeft een claim en een waarde nodig, maximaal één keer per claim en maximaal 20"
         MaxTokenAgeInvalid: "De maximale tokenleeftijd moet groter zijn dan 0 en maximaal 24 uur"
         MaxTokenLifetimeInvalid: "De maximale levensduur van het token moet groter zijn dan 0 en maximaal 1 uur"
+        AssertionAlreadyUsed: "Dit token is al gebruikt; elk token wordt maar één keer geaccepteerd"
     PAT:
       NotFound: "Persoonlijk toegangstoken niet gevonden"
     Metadata:

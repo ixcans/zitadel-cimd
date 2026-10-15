@@ -148,6 +148,7 @@ Errors:
         ConditionInvalid: "O condiție de claim este invalidă: fiecare necesită un claim și o valoare, cel mult o dată per claim și cel mult 20"
         MaxTokenAgeInvalid: "Vechimea maximă a token-ului trebuie să fie mai mare de 0 și de cel mult 24 de ore"
         MaxTokenLifetimeInvalid: "Durata maximă de viață a token-ului trebuie să fie mai mare de 0 și de cel mult 1 oră"
+        AssertionAlreadyUsed: "Acest token a fost deja folosit; fiecare token este acceptat o singură dată"
     PAT:
       NotFound: "Token-ul de acces personal nu a fost găsit"
     Metadata:

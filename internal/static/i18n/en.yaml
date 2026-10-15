@@ -148,6 +148,7 @@ Errors:
         ConditionInvalid: "A claim condition is invalid: each needs a claim and a value, at most once per claim and at most 20"
         MaxTokenAgeInvalid: "The maximum token age must be more than 0 and at most 24 hours"
         MaxTokenLifetimeInvalid: "The maximum token lifetime must be more than 0 and at most 1 hour"
+        AssertionAlreadyUsed: "This token was already used; each token is accepted once only"
     PAT:
       NotFound: "Personal Access Token not found"
     Metadata:

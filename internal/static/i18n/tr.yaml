@@ -148,6 +148,7 @@ Errors:
         ConditionInvalid: "Bir claim koşulu geçersiz: her biri bir claim ve bir değer gerektirir, claim başına en fazla bir kez ve en fazla 20"
         MaxTokenAgeInvalid: "Maksimum token yaşı 0'dan büyük ve en fazla 24 saat olmalıdır"
         MaxTokenLifetimeInvalid: "Maksimum token ömrü 0'dan büyük ve en fazla 1 saat olmalıdır"
+        AssertionAlreadyUsed: "Bu belirteç zaten kullanıldı; her belirteç yalnızca bir kez kabul edilir"
     PAT:
       NotFound: "Kişisel Erişim Token'ı bulunamadı"
     Metadata:

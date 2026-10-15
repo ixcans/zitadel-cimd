@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Kondisi klaim tidak valid: setiap kondisi memerlukan klaim dan nilai, paling banyak satu kali per klaim dan paling banyak 20"
         MaxTokenAgeInvalid: "Usia token maksimum harus lebih dari 0 dan paling lama 24 jam"
         MaxTokenLifetimeInvalid: "Masa berlaku token maksimum harus lebih dari 0 dan paling lama 1 jam"
+        AssertionAlreadyUsed: "Token ini sudah pernah digunakan; setiap token hanya diterima sekali"
     PAT:
       NotFound: "Token Akses Pribadi tidak ditemukan"
     Metadata:

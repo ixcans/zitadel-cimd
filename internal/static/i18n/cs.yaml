@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Podmínka claimu je neplatná: každá vyžaduje claim a hodnotu, nejvýše jednou na claim a nejvýše 20"
         MaxTokenAgeInvalid: "Maximální stáří tokenu musí být větší než 0 a nejvýše 24 hodin"
         MaxTokenLifetimeInvalid: "Maximální životnost tokenu musí být větší než 0 a nejvýše 1 hodina"
+        AssertionAlreadyUsed: "Tento token již byl použit; každý token je přijat pouze jednou"
     PAT:
       NotFound: "Osobní přístupový token nenalezen"
     Metadata:

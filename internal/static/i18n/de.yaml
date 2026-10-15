@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Eine Claim-Bedingung ist ungültig: Jede braucht einen Claim und einen Wert, höchstens einmal pro Claim und höchstens 20"
         MaxTokenAgeInvalid: "Das maximale Token-Alter muss größer als 0 und höchstens 24 Stunden sein"
         MaxTokenLifetimeInvalid: "Die maximale Token-Lebensdauer muss größer als 0 und höchstens 1 Stunde sein"
+        AssertionAlreadyUsed: "Dieses Token wurde bereits verwendet; jedes Token wird nur einmal akzeptiert"
     PAT:
       NotFound: "Persönliches Access Token nicht gefunden"
     Metadata:

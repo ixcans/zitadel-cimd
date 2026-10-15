@@ -43,7 +43,7 @@ func TestOIDCSessionEvents_applyOptions(t *testing.T) {
 				refreshTokenLifeTime:     7 * 24 * time.Hour,
 				refreshTokenIdleLifetime: 24 * time.Hour,
 			}
-			events.applyOptions(tt.opts)
+			events.applyOptions(context.Background(), tt.opts)
 			assert.Equal(t, tt.want, events.accessTokenLifetime)
 			assert.Equal(t, 7*24*time.Hour, events.refreshTokenLifeTime, "the refresh token lifetime is not capped")
 			assert.Equal(t, 24*time.Hour, events.refreshTokenIdleLifetime, "the refresh token idle lifetime is not capped")

@@ -147,6 +147,7 @@ Errors:
         ConditionInvalid: "Warunek claima jest nieprawidłowy: każdy wymaga claima i wartości, co najwyżej raz na claim i co najwyżej 20"
         MaxTokenAgeInvalid: "Maksymalny wiek tokenu musi być większy niż 0 i wynosić co najwyżej 24 godziny"
         MaxTokenLifetimeInvalid: "Maksymalny czas życia tokenu musi być większy niż 0 i wynosić co najwyżej 1 godzinę"
+        AssertionAlreadyUsed: "Ten token został już użyty; każdy token jest akceptowany tylko raz"
     PAT:
       NotFound: "Osobisty token dostępu nie znaleziony"
     Metadata:
