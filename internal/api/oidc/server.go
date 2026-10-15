@@ -135,7 +135,14 @@ func (s *Server) VerifyAuthRequest(ctx context.Context, r *op.Request[oidc.AuthR
 	ctx, span := tracing.NewSpan(ctx)
 	defer func() { span.EndWithError(err) }()
 
-	return s.LegacyServer.VerifyAuthRequest(ctx, r)
+	cr, err := s.LegacyServer.VerifyAuthRequest(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if err = verifyClientIDMetadataRedirectURI(cr.Client, cr.Data.RedirectURI); err != nil {
+		return nil, err
+	}
+	return cr, nil
 }
 
 func (s *Server) Authorize(ctx context.Context, r *op.ClientRequest[oidc.AuthRequest]) (_ *op.Redirect, err error) {

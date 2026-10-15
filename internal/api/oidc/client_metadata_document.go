@@ -31,12 +31,14 @@ import (
 // registration request). The document is fetched, validated and the client is treated as an
 // ephemeral public client without any database entry.
 //
-// The security anchor is the origin match: every redirect_uri must share the exact origin
-// (scheme, host, port) of the client_id URL, so a document can only authorize redirects back
-// to the host that serves it. CIMD clients are always public (token_endpoint_auth_method
-// none) and never run in dev mode, so no client secret is trusted and no redirect wildcards
-// are allowed. The document is fetched through a dedicated client that connects only to public
-// unicast addresses on the standard https port, judged at dial time (internal/publicfetch).
+// The security anchor is the origin match: every redirect_uri that is not a loopback address must
+// share the exact origin (scheme, host, port) of the client_id URL, so a document can only
+// authorize redirects back to the host that serves it, or to a loopback address on the person's
+// own computer (client_metadata_redirects.go). CIMD clients are always public
+// (token_endpoint_auth_method none) and never run in dev mode, so no client secret is trusted
+// and no redirect wildcards are allowed. The document is fetched through a dedicated client that
+// connects only to public unicast addresses on the standard https port, judged at dial time
+// (internal/publicfetch).
 //
 // The fetch happens inline on the public, unauthenticated authorization endpoint, so it is
 // guarded against amplification: concurrent resolutions of the same client_id are collapsed
@@ -468,10 +470,9 @@ func (r *clientIDMetadataResolver) documentToClient(ctx context.Context, clientI
 	if doc.TokenEndpointAuthMethod != "" && doc.TokenEndpointAuthMethod != "none" {
 		return nil, r.invalidClient(ctx, nil, "only token_endpoint_auth_method none is supported for client id metadata documents")
 	}
-	// application_type is validated but its result is not used: a CIMD client is identified by
-	// an HTTPS URL and its redirect URIs are origin matched against it, so it is always treated
-	// as a web client (a native document would in any case fail the origin match for its
-	// loopback or custom-scheme redirect URIs).
+	// application_type is validated but its result is not used: the type follows from the
+	// redirect URIs that are kept (client_metadata_redirects.go). A custom-scheme redirect URI is
+	// never kept.
 	if _, regErr := registrationApplicationTypeToDomain(doc.ApplicationType, doc.RedirectURIs); regErr != nil {
 		return nil, r.invalidClient(ctx, regErr, regErr.ErrorDescription)
 	}
@@ -495,13 +496,16 @@ func (r *clientIDMetadataResolver) documentToClient(ctx context.Context, clientI
 	if slices.ContainsFunc(doc.RedirectURIs, func(uri string) bool { return strings.Contains(uri, "#") }) {
 		return nil, r.invalidClient(ctx, nil, "redirect_uris must not contain a fragment")
 	}
-	redirectURIs := originMatchedURIs(clientURL, doc.RedirectURIs)
+	redirectURIs := cimdRedirectURIs(clientURL, doc.RedirectURIs)
 	if len(redirectURIs) == 0 {
-		return nil, r.invalidClient(ctx, nil, "no redirect_uri matches the client_id origin")
+		return nil, r.invalidClient(ctx, nil, "no redirect_uri matches the client_id origin or is a loopback address")
 	}
 	postLogoutRedirectURIs := originMatchedURIs(clientURL, doc.PostLogoutRedirectURIs)
 
 	applicationType := domain.OIDCApplicationTypeWeb
+	if cimdHasLoopbackRedirectURI(redirectURIs) {
+		applicationType = domain.OIDCApplicationTypeNative
+	}
 	authMethod := domain.OIDCAuthMethodTypeNone
 	if compliance := domain.GetOIDCV1Compliance(&applicationType, grantTypes, &authMethod, redirectURIs); compliance.NoneCompliant {
 		return nil, r.invalidClient(ctx, nil, "the client id metadata document is not compliant")

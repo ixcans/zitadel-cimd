@@ -173,9 +173,19 @@ host the client controls:
 - **Matching `client_id`.** The document's `client_id` member must be exactly the URL it was fetched from.
 - **No redirects.** The document must be served by the `client_id` URL itself. A redirect is not followed and the
   request is rejected with `invalid_client`.
-- **Origin match.** Every `redirect_uri` must share the exact origin (scheme, host and port) of the `client_id` URL. A
-  document can therefore only authorize redirects back to the host that serves it. Redirect URIs with a different origin
-  are dropped; if none remain the request is rejected with `invalid_client`.
+- **Origin match.** Every `redirect_uri` that is not a loopback address (below) must share the exact origin (scheme, host
+  and port) of the `client_id` URL. A document can therefore only authorize redirects back to the host that serves it.
+  Redirect URIs with a different origin, other `http` hosts and custom schemes are dropped; if none remain the request is
+  rejected with `invalid_client`.
+- **Loopback redirects for desktop and command-line tools.** A document may also list loopback addresses
+  ([RFC 8252, section 7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)), so a tool can receive the result
+  on the user's own computer. `http://127.0.0.1:{port}/{path}` and `http://[::1]:{port}/{path}` match an authorization
+  request on any port, since a tool listens on whatever port is free; the scheme, the host, the path and the query must
+  match the listed address. `http://localhost:{port}/{path}` matches only exactly as listed, port included, because the
+  name can resolve to something other than the loopback interface. No other loopback spelling (another `127.x` address,
+  `https`, a trailing dot) is accepted. A client that lists a loopback address is treated as a native client. Because
+  the result goes to a program on the user's computer rather than to the host named by the `client_id`, the login UI
+  should say so when it asks the user to continue.
 - **Public clients only.** `token_endpoint_auth_method` must be `none` (or omitted). A confidential method is rejected,
   as a public URL cannot safely be tied to a client secret. The `jwks` and `jwks_uri` members are rejected as well.
 - **SSRF protection.** The document is fetched through a dedicated client that connects only to public unicast

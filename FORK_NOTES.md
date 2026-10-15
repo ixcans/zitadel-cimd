@@ -99,6 +99,17 @@ fork-only allowed-audience column (item 5 below).
    resolver keeps its injected-client seam (tests pass `httptest` clients); `op.go` passes the
    public-only client. The package is meant for any other fetch of a caller-named URL, such as a
    foreign issuer's published keys. The shared `HTTPClient.DenyList` (item 2) is unchanged.
+9. **Loopback redirect URIs for CIMD clients** (fork-only;
+   `internal/api/oidc/client_metadata_redirects.go`). The ported PR kept only redirect URIs on the
+   `client_id`'s origin, so a desktop or command-line tool could not sign in. A document may now also
+   list `http://127.0.0.1:{port}/{path}`, `http://[::1]:{port}/{path}` (any port at request time,
+   RFC 8252 section 7.3; scheme, host, path and query must match) and `http://localhost:{port}/{path}`
+   (exact match only). Every other non-origin URI is still dropped, and the origin rule is unchanged
+   for non-loopback URIs. A client that lists a loopback URI is native, the type whose loopback
+   redirects the oidc library accepts at all; because that library's native loopback matching
+   compares only path and query, `Server.VerifyAuthRequest` first applies the strict rule
+   (`verifyClientIDMetadataRedirectURI`) to clients whose ID is an https URL. Post-logout redirect URIs
+   stay same-origin only.
 
 ### CI
 
