@@ -192,6 +192,15 @@ host the client controls:
   with a granted audience. Role scopes, `urn:zitadel:iam:user:metadata`, `urn:zitadel:iam:user:resourceowner`,
   identity provider and organization roles scopes, `phone` and `address` are dropped without an error, so neither the
   tokens nor the userinfo endpoint carry project roles, metadata or address data of the user.
+- **Code and refresh grants only.** `grant_types` may list only `authorization_code` and `refresh_token` (the default
+  is `authorization_code`), and `response_types` therefore only `code`. A document that lists `implicit`, the device
+  code grant or token exchange is rejected with `invalid_client`, so no other grant can be used with a self-declared
+  client.
+- **Signed, short-lived tokens.** A resolved client receives JWT access tokens, so a resource server can verify them by
+  signature without an introspection credential. They carry `iss`, `sub`, `aud`, `exp`, `iat`, `nbf`, `jti` and
+  `client_id`, and no role claims. A JWT cannot be revoked before it expires, so its lifetime is capped at one hour,
+  however long the instance's access token lifetime is; a shorter instance lifetime still applies, also to tokens
+  issued by a refresh. ID tokens are capped at five minutes. Refresh tokens keep the instance's lifetimes.
 
 Resolved clients have no project, no client secret and never run in dev mode, so no redirect URI wildcards are allowed.
 

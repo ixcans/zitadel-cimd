@@ -26,7 +26,7 @@ func (s *Server) RefreshToken(ctx context.Context, r *op.ClientRequest[oidc.Refr
 		return nil, zerrors.ThrowInternal(nil, "OIDC-ga0EP", "Error.Internal")
 	}
 
-	session, err := s.command.ExchangeOIDCSessionRefreshAndAccessToken(ctx, r.Data.RefreshToken, r.Data.Scopes, client.client.ClientID, refreshTokenComplianceChecker())
+	session, err := s.command.ExchangeOIDCSessionRefreshAndAccessToken(ctx, r.Data.RefreshToken, r.Data.Scopes, client.client.ClientID, refreshTokenComplianceChecker(), oidcSessionOptions(client)...)
 	if err == nil {
 		return response(s.accessTokenResponseFromSession(ctx, client, session, "", client.client.ProjectID, client.client.ProjectRoleAssertion, client.client.AccessTokenRoleAssertion, client.client.IDTokenRoleAssertion, client.client.IDTokenUserinfoAssertion))
 	} else if errors.Is(err, zerrors.ThrowPreconditionFailed(nil, "OIDCS-JOI23", "Errors.OIDCSession.RefreshTokenInvalid")) {
@@ -70,6 +70,7 @@ func (s *Server) refreshTokenV1(ctx context.Context, client *Client, r *op.Clien
 		true,
 		"",
 		domain.OIDCResponseTypeUnspecified,
+		oidcSessionOptions(client)...,
 	)
 	if err != nil {
 		return nil, err

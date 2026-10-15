@@ -480,6 +480,9 @@ func (r *clientIDMetadataResolver) documentToClient(ctx context.Context, clientI
 	if regErr != nil {
 		return nil, r.invalidClient(ctx, regErr, regErr.ErrorDescription)
 	}
+	if !cimdGrantTypesAllowed(grantTypes) {
+		return nil, r.invalidClient(ctx, nil, "only the authorization_code and refresh_token grant types are supported for client id metadata documents")
+	}
 	responseTypes, regErr := registrationResponseTypesToDomain(doc.ResponseTypes)
 	if regErr != nil {
 		return nil, r.invalidClient(ctx, regErr, regErr.ErrorDescription)
@@ -517,14 +520,12 @@ func (r *clientIDMetadataResolver) documentToClient(ctx context.Context, clientI
 		// PostLogoutRedirectURIs are origin matched as well so they cannot point off-origin.
 		PostLogoutRedirectURIs: postLogoutRedirectURIs,
 		IsDevMode:              false,
-		AccessTokenType:        domain.OIDCTokenTypeBearer,
+		// Signed and short-lived, see client_metadata_tokens.go.
+		AccessTokenType: domain.OIDCTokenTypeJWT,
 		// No project: CIMD clients are ephemeral and carry no project roles. The token flow
 		// already tolerates an empty project id.
 		ProjectID: "",
-		Settings: &query.OIDCSettings{
-			AccessTokenLifetime: r.accessTokenLifetime,
-			IdTokenLifetime:     r.idTokenLifetime,
-		},
+		Settings:  cimdTokenSettings(r.accessTokenLifetime, r.idTokenLifetime),
 		// CIMD clients always use the v2 login; the base URI is applied per request.
 		LoginVersion: domain.LoginVersion2,
 	}

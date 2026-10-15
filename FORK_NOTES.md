@@ -74,6 +74,18 @@ fork-only allowed-audience column (item 5 below).
    `phone`, `address`, custom). This also closes a role read through `/userinfo`, which asserts the
    roles of every project an `...:aud` scope names whenever `projects:roles` is present. The
    `resource` parameter stays ignored and dynamic client registration is unchanged.
+7. **Signed, short-lived tokens and two grants for CIMD clients** (fork-only;
+   `internal/api/oidc/client_metadata_tokens.go`). A client resolved from a metadata document gets
+   JWT access tokens (so a resource server needs no introspection credential), capped at one hour
+   because a JWT cannot be revoked before `exp`, and ID tokens capped at five minutes; a shorter
+   configured lifetime still applies. The access token lifetime is decided in the command layer from
+   the instance OIDC settings, not from the client, so the cap reaches it through a variadic
+   `command.OIDCSessionOption` (`WithMaxAccessTokenLifetime`, `internal/command/oidc_session_option.go`)
+   that the code exchange and refresh handlers pass only for such a client (its client ID is an
+   https URL, which no registered application can have). A document may declare only the
+   `authorization_code` and `refresh_token` grants; one that lists implicit, device code or token
+   exchange does not resolve (`invalid_client`). Registered and dynamically registered clients are
+   unchanged (DCR stays opaque).
 
 ### CI
 

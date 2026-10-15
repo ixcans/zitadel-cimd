@@ -42,6 +42,7 @@ func (s *Server) CodeExchange(ctx context.Context, r *op.ClientRequest[oidc.Acce
 			codeExchangeComplianceChecker(client, r.Data),
 			slices.Contains(client.GrantTypes(), oidc.GrantTypeRefreshToken),
 			client.client.BackChannelLogoutURI,
+			oidcSessionOptions(client)...,
 		)
 	} else {
 		session, err = s.codeExchangeV1(ctx, client, r.Data, r.Data.Code)
@@ -93,6 +94,7 @@ func (s *Server) codeExchangeV1(ctx context.Context, client *Client, req *oidc.A
 		slices.Contains(scope, oidc.ScopeOfflineAccess),
 		authReq.SessionID,
 		authReq.oidc().ResponseType,
+		oidcSessionOptions(client)...,
 	)
 	if err != nil {
 		return nil, err

@@ -60,6 +60,7 @@ func (c *Commands) CreateOIDCSessionFromAuthRequest(
 	complianceCheck AuthRequestComplianceChecker,
 	needRefreshToken bool,
 	backChannelLogoutURI string,
+	opts ...OIDCSessionOption,
 ) (session *OIDCSession, state string, err error) {
 	ctx, span := tracing.NewSpan(ctx)
 	defer func() { span.EndWithError(err) }()
@@ -91,6 +92,7 @@ func (c *Commands) CreateOIDCSessionFromAuthRequest(
 	if err != nil {
 		return nil, "", err
 	}
+	cmd.applyOptions(opts)
 	if authReqModel.ResponseType == domain.OIDCResponseTypeCode {
 		if err = cmd.SetAuthRequestCodeExchanged(ctx, authReqModel); err != nil {
 			return nil, "", err
@@ -154,6 +156,7 @@ func (c *Commands) CreateOIDCSession(ctx context.Context,
 	needRefreshToken bool,
 	sessionID string,
 	responseType domain.OIDCResponseType,
+	opts ...OIDCSessionOption,
 ) (session *OIDCSession, err error) {
 	ctx, span := tracing.NewSpan(ctx)
 	defer func() { span.EndWithError(err) }()
@@ -162,6 +165,7 @@ func (c *Commands) CreateOIDCSession(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	cmd.applyOptions(opts)
 	if err = cmd.checkPermission(ctx, userID, resourceOwner, clientID, reason, actor); err != nil {
 		return nil, err
 	}
@@ -193,7 +197,7 @@ type RefreshTokenComplianceChecker func(ctx context.Context, wm *OIDCSessionWrit
 
 // ExchangeOIDCSessionRefreshAndAccessToken updates an existing OIDC Session, creates a new access and refresh token.
 // It returns the access token id and expiration and the new refresh token.
-func (c *Commands) ExchangeOIDCSessionRefreshAndAccessToken(ctx context.Context, refreshToken string, scope []string, reqClientID string, complianceCheck RefreshTokenComplianceChecker) (_ *OIDCSession, err error) {
+func (c *Commands) ExchangeOIDCSessionRefreshAndAccessToken(ctx context.Context, refreshToken string, scope []string, reqClientID string, complianceCheck RefreshTokenComplianceChecker, opts ...OIDCSessionOption) (_ *OIDCSession, err error) {
 	ctx, span := tracing.NewSpan(ctx)
 	defer func() { span.EndWithError(err) }()
 
@@ -201,6 +205,7 @@ func (c *Commands) ExchangeOIDCSessionRefreshAndAccessToken(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	cmd.applyOptions(opts)
 	scope, err = complianceCheck(ctx, cmd.oidcSessionWriteModel, scope, reqClientID)
 	if err != nil {
 		return nil, err
