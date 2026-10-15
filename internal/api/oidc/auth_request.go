@@ -363,7 +363,30 @@ func (o *OPStorage) TerminateSessionFromRequest(ctx context.Context, endSessionR
 	if err != nil {
 		return "", err
 	}
-	return v2PostLogoutRedirectURI(endSessionRequest.RedirectURI), nil
+	return v2LogoutDoneRedirect(endSessionRequest.RedirectURI, authz.GetFeatures(ctx).LoginV2.BaseURI, o.defaultLogoutURLV2), nil
+}
+
+// v2LogoutDoneRedirect is where the browser goes after a V2 session ended through its id_token_hint.
+// A client's own post_logout_redirect_uri is kept. Without one, it is the login UI's logout done page
+// under the login UI's base: the instance's LoginV2 base URI when set, else the base of the configured
+// default logout URL (DefaultLogoutURLV2 without its trailing LogoutPath). The bare LogoutDonePath is
+// right only for a login UI served at the root of the host, and is the last resort.
+func v2LogoutDoneRedirect(redirectURI string, baseURI *url.URL, defaultLogoutURLV2 string) string {
+	if redirectURI != login.DefaultLoggedOutPath {
+		return redirectURI
+	}
+	if baseURI != nil && baseURI.String() != "" {
+		return baseURI.JoinPath(LogoutDonePath).String()
+	}
+	if u, err := url.Parse(defaultLogoutURLV2); err == nil {
+		if base, ok := strings.CutSuffix(strings.TrimSuffix(u.Path, "/"), LogoutPath); ok {
+			u.Path = base + LogoutDonePath
+			u.RawQuery = ""
+			u.Fragment = ""
+			return u.String()
+		}
+	}
+	return LogoutDonePath
 }
 
 // federatedLogout checks whether the session has an idp session linked and the IDP template is configured for federated logout.

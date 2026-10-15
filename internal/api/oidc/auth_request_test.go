@@ -138,3 +138,68 @@ var (
 		return signer
 	}()
 )
+
+func TestV2LogoutDoneRedirect(t *testing.T) {
+	t.Parallel()
+
+	mustParse := func(raw string) *url.URL {
+		u, err := url.Parse(raw)
+		require.NoError(t, err)
+		return u
+	}
+
+	tt := []struct {
+		testName           string
+		redirectURI        string
+		baseURI            *url.URL
+		defaultLogoutURLV2 string
+		want               string
+	}{
+		{
+			testName:           "a client's own post_logout_redirect_uri is kept",
+			redirectURI:        "https://client.example.com/signed-out",
+			baseURI:            mustParse("https://login.example.com/ui/v2/login"),
+			defaultLogoutURLV2: "/ui/v2/login/logout?post_logout_redirect=",
+			want:               "https://client.example.com/signed-out",
+		},
+		{
+			testName:           "no redirect: the done page under the instance's login base URI",
+			redirectURI:        "/ui/login/logout/done",
+			baseURI:            mustParse("https://login.example.com/ui/v2/login"),
+			defaultLogoutURLV2: "/ui/v2/login/logout?post_logout_redirect=",
+			want:               "https://login.example.com/ui/v2/login/logout/done",
+		},
+		{
+			testName:           "no redirect and no base URI: the done page under the default logout URL's base",
+			redirectURI:        "/ui/login/logout/done",
+			defaultLogoutURLV2: "/ui/v2/login/logout?post_logout_redirect=",
+			want:               "/ui/v2/login/logout/done",
+		},
+		{
+			testName:           "an absolute default logout URL keeps its host",
+			redirectURI:        "/ui/login/logout/done",
+			baseURI:            &url.URL{},
+			defaultLogoutURLV2: "https://login.example.com/custom/logout?post_logout_redirect=#x",
+			want:               "https://login.example.com/custom/logout/done",
+		},
+		{
+			testName:           "a login UI served at the root keeps the bare path",
+			redirectURI:        "/ui/login/logout/done",
+			defaultLogoutURLV2: "/logout?post_logout_redirect=",
+			want:               "/logout/done",
+		},
+		{
+			testName:           "a default logout URL not ending in the logout path falls back to the bare path",
+			redirectURI:        "/ui/login/logout/done",
+			defaultLogoutURLV2: "/somewhere/else",
+			want:               "/logout/done",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.testName, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.want, v2LogoutDoneRedirect(tc.redirectURI, tc.baseURI, tc.defaultLogoutURLV2))
+		})
+	}
+}

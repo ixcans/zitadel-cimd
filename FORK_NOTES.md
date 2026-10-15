@@ -201,6 +201,17 @@ fork-only allowed-audience column (item 5 below).
    and a deactivated or locked user were refused; a key rotated in the issuer's key set was accepted without touching
    the credential. Not verified on a running instance: a second replica, and an issuer reachable only over IPv4.
 
+14. **The logout done page under the login UI's base** (fork-level fix of upstream behaviour;
+   `internal/api/oidc/auth_request.go`, `v2LogoutDoneRedirect`). When a V2 session ends through
+   `end_session` with an `id_token_hint` and no `post_logout_redirect_uri`, upstream redirects the
+   browser to the bare `/logout/done`, which exists only when the login UI is served at the root of
+   the host; with the login UI under `/ui/v2/login` it answers 404 although the session did end. The
+   redirect is now the done page under the login UI's base: the instance's `LoginV2` base URI when
+   set, else the base of `DefaultLogoutURLV2` (that URL without its trailing `/logout`), and the bare
+   path only when neither gives one. A client's own `post_logout_redirect_uri` is unchanged, and so is
+   the path without an `id_token_hint`, which hands `/logout/done` to the login UI itself, whose router
+   adds its base path.
+
 ### CI
 
 Upstream's full workflow suite (lint, unit/integration tests, CodeQL, issue triage,
