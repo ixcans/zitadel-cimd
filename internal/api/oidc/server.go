@@ -149,6 +149,10 @@ func (s *Server) Authorize(ctx context.Context, r *op.ClientRequest[oidc.AuthReq
 	ctx, span := tracing.NewSpan(ctx)
 	defer span.End()
 
+	if err = checkClientIDMetadataDocumentAuthRequestPKCE(r.Client.GetID(), r.Data); err != nil {
+		return op.TryErrorRedirect(ctx, r.Data, err, s.Provider().Encoder(), s.Provider().Logger())
+	}
+
 	// Use an own method to validate the id_token_hint, because in case of an error, we don't want to fail the request.
 	// We just want to ignore the hint.
 	userID, err := op.ValidateAuthReqIDTokenHint(ctx, r.Data.IDTokenHint, s.Provider().IDTokenHintVerifier(ctx))
