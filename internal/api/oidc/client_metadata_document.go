@@ -35,9 +35,8 @@ import (
 // (scheme, host, port) of the client_id URL, so a document can only authorize redirects back
 // to the host that serves it. CIMD clients are always public (token_endpoint_auth_method
 // none) and never run in dev mode, so no client secret is trusted and no redirect wildcards
-// are allowed. The document is fetched through the shared SSRF-safe HTTP client, whose
-// operator denylist blocks loopback, private, link-local and cloud-metadata addresses at dial
-// time.
+// are allowed. The document is fetched through a dedicated client that connects only to public
+// unicast addresses on the standard https port, judged at dial time (internal/publicfetch).
 //
 // The fetch happens inline on the public, unauthenticated authorization endpoint, so it is
 // guarded against amplification: concurrent resolutions of the same client_id are collapsed
@@ -206,8 +205,8 @@ func StartClientIDMetadataDocumentCache(background context.Context, conf *cache.
 }
 
 // clientIDMetadataResolver fetches and validates Client ID Metadata Documents and turns them
-// into ephemeral, in-memory OIDC clients. It reuses the shared SSRF-safe HTTP client and the
-// generic cache; it never touches the database.
+// into ephemeral, in-memory OIDC clients. It fetches through the HTTP client it is given (the
+// public-only client in production) and uses the generic cache; it never touches the database.
 type clientIDMetadataResolver struct {
 	httpClient          *http.Client
 	allowlist           clientIDMetadataAllowlist
@@ -418,8 +417,8 @@ func (r *clientIDMetadataResolver) fetchAndValidate(ctx context.Context, clientI
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
-		// The SSRF-safe client blocks loopback, private, link-local and cloud-metadata
-		// addresses at dial time, so a blocked target surfaces here as a transport error.
+		// The public-only client refuses any address that is not public unicast, and any port
+		// but the standard https port, so a refused target surfaces here as a transport error.
 		return nil, 0, r.invalidClient(ctx, err, "client id metadata document could not be fetched")
 	}
 	defer func() {
@@ -538,7 +537,7 @@ func (r *clientIDMetadataResolver) documentToClient(ctx context.Context, clientI
 // client_id does not resolve.
 //
 // The underlying cause is logged so an operator can tell a client-side problem (bad document,
-// origin mismatch) from an instance-side one (egress broken, denylist too wide), which the
+// origin mismatch) from an instance-side one (egress broken, address refused), which the
 // invalid_client answer alone hides. It is logged at debug level: the resolution happens on the
 // public, unauthenticated authorize endpoint, so the client_id is attacker controlled and a
 // higher level would let anyone fill the logs.

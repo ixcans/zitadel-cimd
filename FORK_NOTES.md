@@ -86,6 +86,19 @@ fork-only allowed-audience column (item 5 below).
    `authorization_code` and `refresh_token` grants; one that lists implicit, device code or token
    exchange does not resolve (`invalid_client`). Registered and dynamically registered clients are
    unchanged (DCR stays opaque).
+8. **Public-only document fetch** (fork-only; `internal/publicfetch`). The metadata document is no
+   longer fetched through the shared HTTP client and its operator denylist, which Actions targets
+   also use and which an operator may narrow so Actions can reach internal targets. `publicfetch.NewClient()`
+   connects only to public unicast addresses on port 443 over TLS, judged at dial time on the
+   resolved address (rebinding-safe), with no proxy and no redirects. The rule is the pure function
+   `publicfetch.IsPublicUnicast` (`CheckAddress` adds the port): every block of the IANA IPv4 and IPv6
+   special-purpose registries is refused whatever its "globally reachable" flag, plus IPv4 multicast
+   and all IPv6 outside `2000::/3`; IPv4-mapped and NAT64 well-known-prefix (`64:ff9b::/96`)
+   addresses are judged by their embedded IPv4 address, and `64:ff9b:1::/48` is refused. The table
+   was checked against the registries on 2026-10-15; re-check it when IANA adds a block. The
+   resolver keeps its injected-client seam (tests pass `httptest` clients); `op.go` passes the
+   public-only client. The package is meant for any other fetch of a caller-named URL, such as a
+   foreign issuer's published keys. The shared `HTTPClient.DenyList` (item 2) is unchanged.
 
 ### CI
 

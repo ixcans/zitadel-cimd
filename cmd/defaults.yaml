@@ -743,7 +743,8 @@ OIDC:
     AllowedURLs: # ZITADEL_OIDC_CLIENTIDMETADATADOCUMENT_ALLOWEDURLS (comma separated list)
     # Allows every valid client_id URL, so that instances decide on their own which ones they
     # resolve. Only enable it if every instance of the system may make ZITADEL fetch any public
-    # HTTPS URL; the HTTPClient.DenyList still applies.
+    # HTTPS URL. The document fetch reaches only public unicast addresses on port 443, judged at
+    # dial time, whatever HTTPClient.DenyList says (see internal/publicfetch).
     AllowAnyURL: false # ZITADEL_OIDC_CLIENTIDMETADATADOCUMENT_ALLOWANYURL
     # Bounds the outbound document fetches per instance. A request over the bound is answered
     # with invalid_client and is not cached, so it resolves normally once fetches are available.
@@ -1182,8 +1183,9 @@ HTTPClient:
     # returns directly, bypassing DNS64 synthesis entirely) that embeds a denied IPv4 address in
     # that prefix - e.g. 64:ff9b::a9fe:a9fe for 169.254.169.254, or 64:ff9b::7f00:1 for 127.0.0.1 -
     # is NOT contained in any of the four IPv6 entries above, so it would sail through this
-    # denylist's resolved-IP check undetected. Blocking the whole prefix here is the safe default:
-    # CIMD document URLs must be plain public HTTPS endpoints, never NAT64-synthesized addresses.
+    # denylist's resolved-IP check undetected. Blocking the whole prefix here is the safe default
+    # for the targets this list guards. (Client ID Metadata Documents are not fetched through this
+    # list: their own client decodes the prefix and judges the embedded IPv4 address.)
     - "64:ff9b::/96"    # NAT64 well-known prefix (RFC 6052) - blocks embedded-IPv4 denylist bypass
 
 # The DefaultInstance section defines the default values for each new virtual instance that is created.

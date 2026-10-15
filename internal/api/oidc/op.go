@@ -23,6 +23,7 @@ import (
 	"github.com/zitadel/zitadel/internal/domain/federatedlogout"
 	"github.com/zitadel/zitadel/internal/eventstore"
 	"github.com/zitadel/zitadel/internal/notification/handlers"
+	"github.com/zitadel/zitadel/internal/publicfetch"
 	"github.com/zitadel/zitadel/internal/query"
 	"github.com/zitadel/zitadel/internal/zerrors"
 )
@@ -142,7 +143,9 @@ func NewServer(
 	if err != nil {
 		return nil, zerrors.ThrowInternal(err, "OIDC-Rb8tN", "cannot create client id metadata document allowlist")
 	}
-	clientIDMetadataResolver := newClientIDMetadataResolver(httpClient, clientIDMetadataAllowlist, clientIDMetadataDocumentCache, config.DefaultAccessTokenLifetime, config.DefaultIdTokenLifetime, fallbackLogger)
+	// The document fetch has its own public-only client, not the shared httpClient: see
+	// internal/publicfetch.
+	clientIDMetadataResolver := newClientIDMetadataResolver(publicfetch.NewClient(), clientIDMetadataAllowlist, clientIDMetadataDocumentCache, config.DefaultAccessTokenLifetime, config.DefaultIdTokenLifetime, fallbackLogger)
 	storage := newStorage(config, command, query, repo, authAlg, es, ContextToIssuer, federatedLogoutCache, clientIDMetadataResolver)
 	keyCache := newPublicKeyCache(ctx, config.PublicKeyCacheMaxAge, queryKeyFunc(query))
 	accessTokenKeySet := newOidcKeySet(keyCache, withKeyExpiryCheck(true))

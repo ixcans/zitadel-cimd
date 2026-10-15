@@ -39,8 +39,8 @@ OIDC:
 ```
 
 `AllowAnyURL` allows every valid `client_id` URL, so that instances decide on their own which ones they resolve. Only
-enable it if every instance of the system may make ZITADEL fetch any public HTTPS URL. The
-`HTTPClient.DenyList` still applies.
+enable it if every instance of the system may make ZITADEL fetch any public HTTPS URL. The fetch still reaches only
+public unicast addresses on port 443 (see [Security model](#security-model)).
 
 ZITADEL does not start with an invalid entry in `AllowedURLs`.
 
@@ -178,9 +178,16 @@ host the client controls:
   are dropped; if none remain the request is rejected with `invalid_client`.
 - **Public clients only.** `token_endpoint_auth_method` must be `none` (or omitted). A confidential method is rejected,
   as a public URL cannot safely be tied to a client secret. The `jwks` and `jwks_uri` members are rejected as well.
-- **SSRF protection.** The document is fetched through ZITADEL's hardened HTTP client. Its operator denylist blocks
-  loopback, private, link-local and cloud-metadata addresses at dial time (see `HTTPClient.DenyList`), the fetch uses a
-  short timeout and the response body is bounded.
+- **SSRF protection.** The document is fetched through a dedicated client that connects only to public unicast
+  addresses on port 443, over TLS. Every address is judged at dial time, after name resolution, so a hostname that
+  resolves (or re-resolves) to an internal address is refused. Refused are every block of the IANA IPv4 and IPv6
+  special-purpose address registries (private, loopback, link-local and cloud metadata, carrier-grade NAT,
+  benchmarking, documentation, unique-local, 6to4, Teredo and the rest), IPv4 multicast, and any IPv6 address outside
+  the global unicast space `2000::/3`. An IPv4-mapped IPv6 address and an address under the NAT64 well-known prefix
+  `64:ff9b::/96` are judged by the IPv4 address they carry; the local-use translation prefix `64:ff9b:1::/48` is
+  refused. A `client_id` URL with an explicit port other than 443 is therefore never fetched. The client uses no proxy.
+  This rule is separate from the operator denylist (`HTTPClient.DenyList`), which keeps guarding Actions targets and
+  does not apply to the document fetch. The fetch uses a short timeout and the response body is bounded.
 - **Caching.** A resolved document is cached per instance, honoring its `Cache-Control` and `Expires` headers up to a
   capped maximum. A `no-store` or `no-cache` response is never cached.
 - **Identity scopes by default.** A resolved client can be described by a document anyone publishes, so an authorization
