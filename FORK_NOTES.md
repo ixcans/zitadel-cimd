@@ -137,7 +137,11 @@ fork-only allowed-audience column (item 5 below).
    only the fields that changed. The read model is the new projection
    `projections.federated_credentials_ixcans_fork` (created by `zitadel setup`'s projection table step,
    which runs again for every new build version; no numbered setup step), which `query.SearchFederatedCredentials` reads by user, ID, exact issuer and enabled
-   only. The token endpoint's exchange is item 13.
+   only. The token endpoint's exchange is item 13. Shipped in `v4.19.4-cimd.5`. A deployment that overrides
+   `InternalAuthZ.RolePermissionMappings` (viper replaces the whole list) must add the three
+   `user.federated_credential.*` permissions to `IAM_OWNER` itself, or no caller can manage a credential: the
+   management calls decide on the running process's mapping. On a running instance, a credential added through the API
+   was listed at once and its `added` event named the caller as editor.
 11. **A metadata document client's sign-in completes** (fork-only; fixes the ported PR). When the login
    UI linked the user's session to the authorization request (`CreateCallback`), the command layer ran
    the project permission check, which looks the client up as a registered application by its client
@@ -187,6 +191,15 @@ fork-only allowed-audience column (item 5 below).
    `domain.UserAuthMethodTypeFederatedCredential` (value 1001, outside upstream's sequence), shown as `amr`
    `federated_credential` in introspection and ID tokens. The read model is triggered before the credential lookup,
    so a disable takes effect at once. The user's state is checked as for a key (`CreateOIDCSession`).
+   Shipped with item 10 in `v4.19.4-cimd.5` and verified on a running instance, one replica, against a throwaway issuer
+   that served its metadata and key set as static files on a public host: ES256 and RS256 tokens were exchanged for
+   machine tokens with `amr` `federated_credential`, no refresh token and a lifetime equal to the cap; the `exchanged`
+   event named the issuer, the external subject and the mapped user, and its session ID prefixed the access token's
+   `jti`. A replayed token, the same token with an `(r, n-s)` signature and a respelled payload without `jti` were
+   refused as already used, leaving one `exchanged` event; a token older than the maximum age, an expired token, a token
+   without `iat`, a wrong audience, subject, condition, algorithm or `kid`, a disabled credential, an ambiguous match
+   and a deactivated or locked user were refused; a key rotated in the issuer's key set was accepted without touching
+   the credential. Not verified on a running instance: a second replica, and an issuer reachable only over IPv4.
 
 ### CI
 
