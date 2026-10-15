@@ -178,14 +178,21 @@ func (q *Queries) SearchFederatedCredentials(ctx context.Context, queries *Feder
 }
 
 // federatedCredentialsCheckPermission drops the credentials of users the caller may not read the
-// federated credentials of. Unlike a user's own profile, a user cannot read its own federated
-// credentials without the permission.
+// federated credentials of, and does not count them. Unlike a user's own profile, a user cannot
+// read its own federated credentials without the permission.
 func federatedCredentialsCheckPermission(ctx context.Context, credentials *FederatedCredentials, permissionCheck domain.PermissionCheck) {
+	before := len(credentials.FederatedCredentials)
 	credentials.FederatedCredentials = slices.DeleteFunc(credentials.FederatedCredentials,
 		func(credential *FederatedCredential) bool {
 			return permissionCheck(ctx, domain.PermissionUserFederatedCredentialRead, credential.ResourceOwner, credential.UserID) != nil
 		},
 	)
+	removed := uint64(before - len(credentials.FederatedCredentials))
+	if len(credentials.FederatedCredentials) == 0 || removed > credentials.Count {
+		credentials.Count = 0
+		return
+	}
+	credentials.Count -= removed
 }
 
 func prepareFederatedCredentialsQuery() (sq.SelectBuilder, func(*sql.Rows) (*FederatedCredentials, error)) {

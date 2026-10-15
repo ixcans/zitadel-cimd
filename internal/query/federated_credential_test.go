@@ -205,16 +205,20 @@ func Test_FederatedCredentialPrepares(t *testing.T) {
 
 func Test_federatedCredentialsCheckPermission(t *testing.T) {
 	credentials := func() *FederatedCredentials {
-		return &FederatedCredentials{FederatedCredentials: []*FederatedCredential{
-			{ID: "cred1", UserID: "user1", ResourceOwner: "org1"},
-			{ID: "cred2", UserID: "user2", ResourceOwner: "org2"},
-		}}
+		return &FederatedCredentials{
+			SearchResponse: SearchResponse{Count: 2},
+			FederatedCredentials: []*FederatedCredential{
+				{ID: "cred1", UserID: "user1", ResourceOwner: "org1"},
+				{ID: "cred2", UserID: "user2", ResourceOwner: "org2"},
+			},
+		}
 	}
 	tests := []struct {
 		name            string
 		ctx             context.Context
 		permissionCheck domain.PermissionCheck
 		want            []string
+		wantCount       uint64
 	}{
 		{
 			name: "read permission on every user",
@@ -225,7 +229,8 @@ func Test_federatedCredentialsCheckPermission(t *testing.T) {
 				}
 				return zerrors.ThrowPermissionDenied(nil, "TEST", "denied")
 			},
-			want: []string{"cred1", "cred2"},
+			want:      []string{"cred1", "cred2"},
+			wantCount: 2,
 		},
 		{
 			name: "read permission in one organization",
@@ -236,7 +241,8 @@ func Test_federatedCredentialsCheckPermission(t *testing.T) {
 				}
 				return zerrors.ThrowPermissionDenied(nil, "TEST", "denied")
 			},
-			want: []string{"cred2"},
+			want:      []string{"cred2"},
+			wantCount: 1,
 		},
 		{
 			name: "user read permission only",
@@ -247,7 +253,8 @@ func Test_federatedCredentialsCheckPermission(t *testing.T) {
 				}
 				return zerrors.ThrowPermissionDenied(nil, "TEST", "denied")
 			},
-			want: []string{},
+			want:      []string{},
+			wantCount: 0,
 		},
 	}
 	for _, tt := range tests {
@@ -259,6 +266,7 @@ func Test_federatedCredentialsCheckPermission(t *testing.T) {
 				ids = append(ids, credential.ID)
 			}
 			assert.Equal(t, tt.want, ids)
+			assert.Equal(t, tt.wantCount, got.Count)
 		})
 	}
 }
